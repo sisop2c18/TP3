@@ -55,13 +55,15 @@ int main(int argc, char *const argv[]){
     dir = opendir(cwd);
     if (dir){
     /* Directory exists. */
-    closedir(dir);
+      closedir(dir);
     }else if (ENOENT == errno){
       printf("Directorio Inexistente.\n");
+      closedir(dir);
       exit(1);
     }
   }else{
     printf("Ha ocurrido un error.\n");
+    closedir(dir);
     exit(1);
   }
 
