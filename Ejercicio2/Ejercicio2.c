@@ -97,7 +97,7 @@ int main(int argc, char *const argv[]){
   printf("Cantidad Total de Archivos: %d\n", cantTotal);
   printf("*************************************************************************************************\n");
   while(lista){
-    printf("Extension: %s - Cant Files: %ld - Tamaño: Max %ld - Min %ld -  Owner: ID %d - Cantidad Files %ld\n", lista->dato.ext, lista->dato.tamArch, lista->dato.tamMax, lista->dato.tamMin, lista->dato.owner, lista->dato.tamArch);
+    printf("Extension: %s - Cant Files: %ld - Tamaño: Max %ld - Min %ld -  Owner: Name %s - Cantidad Files %ld\n", lista->dato.ext, lista->dato.tamArch, lista->dato.tamMax, lista->dato.tamMin, lista->dato.owner, lista->dato.tamArch);
     printf("*************************************************************************************************\n");
     lista = lista->sig;
     j++;

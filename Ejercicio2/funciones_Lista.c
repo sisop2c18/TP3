@@ -23,7 +23,8 @@ int insertarOrdenado(t_lista *p,const t_dato *d,t_cmp cmp){
         crearListaL(&((*p)->dato.list));
     }
     strcpy(dat.name,d->name);
-    dat.owner = d->owner;
+    strcpy(dat.owner,d->owner);
+    //dat.owner = d->owner;
     dat.tamArch = d->tamArch;
     insertarOrdenadoL(&((*p)->dato.list),&dat,cmpL);
     return 1;
@@ -123,7 +124,8 @@ int cargarArchivosEnLista(t_lista* p, const char *name){
             strcpy(d.ext,ext);
             d.cantArch=1;
             strcpy(d.name,entry->d_name);
-            d.owner = st.st_uid;
+            strcpy(d.owner,getpwuid(st.st_uid)->pw_name);
+            //d.owner = st.st_uid;
             d.tamArch = st.st_size;
             d.tamMax = d.tamArch;
             d.tamMin = d.tamArch;
@@ -169,7 +171,8 @@ int insertarOrdenadoL(t_listaL *p,const t_datoL *d,t_cmpL cmpL){
  int cmpA(const void *e1,const void *e2){
     //e1 es la clave de la lista
     //e2 es la clave de la nueva info
-    return ((t_datoL*)e1)->owner - ((t_datoL*)e2)->owner;
+    //return ((t_datoL*)e1)->owner - ((t_datoL*)e2)->owner;
+    return strcmp(((t_datoL*)e1)->owner,((t_datoL*)e2)->owner);
 }
 //////////////////////////////////////////////////////////////////////////////////
 void vaciarListaL(t_listaL *p){
@@ -186,7 +189,8 @@ void mostrarListaL(t_listaL *p){
     ant = *p;
     while(*p){  
         printf("Name: %s\t", ((*p)->dato).name);
-        printf("Owner: %d\t", ((*p)->dato).owner);
+        //printf("Owner: %d\t", ((*p)->dato).owner);
+        printf("Owner: %s\t", ((*p)->dato).owner);
         printf("Tam: %ld\n", ((*p)->dato).tamArch);
         p = &(*p)->sig;
     }
@@ -229,11 +233,15 @@ void ordenarListaL(t_listaL *p){
 
     while(inicio){
         while(current){
-            if((inicio->dato).owner > ((current)->dato).owner){
+            if(strcmp((inicio->dato).owner,((current)->dato).owner) > 0){
+            //if((inicio->dato).owner > ((current)->dato).owner){
                 // INTERCAMBIO owner
-                aux = ((current)->dato).owner;
-                ((current)->dato).owner = (inicio->dato).owner;
-                (inicio->dato).owner = aux;
+                //aux = ((current)->dato).owner;
+                //((current)->dato).owner = (inicio->dato).owner;
+                //(inicio->dato).owner = aux;
+                strcpy(auxN, ((current)->dato).owner);
+                strcpy(((current)->dato).owner, (inicio->dato).owner);
+                strcpy((inicio->dato).owner, auxN);
                 
                 // INTERCAMBIO NOMBRE ARCHIVO
                 strcpy(auxN, ((current)->dato).name);
@@ -298,7 +306,8 @@ void buscarMayorMenorOwner(t_dato *d){
 
     crearListaL(&l1);
     
-    d1.owner = l->dato.owner;
+    //d1.owner = l->dato.owner;
+    strcpy(d1.owner,l->dato.owner);
     d1.tamArch = 1;
     d->tamArch = 1;
 
@@ -307,10 +316,12 @@ void buscarMayorMenorOwner(t_dato *d){
     l2 = l1;
 
     while(l){
-        if(((l->dato).owner == (l2->dato).owner)){
+        //if(((l->dato).owner == (l2->dato).owner)){
+        if(strcmp((l->dato).owner,(l2->dato).owner) == 0){
             l2->dato.tamArch++;   
         }else{
-            d1.owner = l->dato.owner;
+            //d1.owner = l->dato.owner;
+            strcpy(d1.owner,l->dato.owner);
             d1.tamArch = 1;
             insertarOrdenadoL(&l1,&d1,cmpA);
             l2 = l2->sig;
@@ -319,13 +330,15 @@ void buscarMayorMenorOwner(t_dato *d){
         l = l->sig;
     }
 
-    d->owner = l1->dato.owner;
+    //d->owner = l1->dato.owner;
+    strcpy(d->owner,l1->dato.owner);
     d->tamArch = l1->dato.tamArch;
     l1 = l1->sig;
 
     while(l1){
         if(d->tamArch < (l1->dato).tamArch){
-            d->owner = l1->dato.owner;
+            //d->owner = l1->dato.owner;
+            strcpy(d->owner,l1->dato.owner);
             d->tamArch = l1->dato.tamArch;
         }
         l1 = l1->sig;

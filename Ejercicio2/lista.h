@@ -6,11 +6,13 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <libgen.h>
+#include <pwd.h>
 
 ///////////////////////////////////////
 typedef struct{
     char name[100];
-    int owner;
+    char owner[100];
+    //int owner;
     long tamArch;
 }t_datoL;
 
@@ -28,7 +30,8 @@ typedef struct{
     long tamMax;
     long tamMin;
     char name[100];
-    int owner;
+    char owner[100];
+    //int owner;
     long tamArch;
     t_listaL list;
 }t_dato;
