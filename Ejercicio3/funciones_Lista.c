@@ -38,26 +38,31 @@ void vaciarLista(t_lista *p){
 }
 //////////////////////////////////////////////////////////////////////////////////
 void mostrarLista(t_lista *p){
+    if(*p == NULL){
+        return;
+    }
     while(*p){
-        printf("Patente: %s - Hora: %d:%d:%d\n", ((*p)->dato).patente, ((*p)->dato).hora, ((*p)->dato).min, ((*p)->dato).seg);
+        printf("Tipo: %c Patente: %s - Hora: %d:%d:%d\n", ((*p)->dato).tipo, ((*p)->dato).patente, ((*p)->dato).hora, ((*p)->dato).min, ((*p)->dato).seg);
         p = &(*p)->sig;
     }
 }
 //////////////////////////////////////////////////////////////////////////////////
-int eliminarPorPosicion(t_lista *p, int poss){
+
+// 1 = ELimino
+// 0 = no existe
+
+int eliminarDato(t_lista *p, const t_dato *d,t_cmp cmp){
     t_nodo *aux;
-    int cont = 1;
-    if(poss<=0){
-        return 0;
+    while(*p && (cmp(&((*p)->dato),d)<0)){
+        p= &(*p)->sig;
     }
-    while((cont<poss) && (*p)){
-        p = &(*p)->sig;
-        cont++;
+    if(*p && (cmp(&((*p)->dato),d)==0)){
+        aux = *p;
+        *p = aux->sig;
+        free(aux);
+        return 1;
     }
-    aux = *p;
-    *p = aux->sig;
-    free(aux);
-    return 1;
+    return 0;
 }
 //////////////////////////////////////////////////////////////////////////////////
 int size(t_lista *p){
@@ -109,3 +114,61 @@ int exist(t_lista *p,const t_dato *d,t_cmp cmp){
     }
     return 0;
  }
+//////////////////////////////////////////////////////////////////////////////////
+
+// devuelve los segundos
+double buscarHora(t_lista *p,const t_dato *d,t_cmp cmp){
+    t_nodo *nue;
+    while(*p && (cmp(&((*p)->dato),d)<0)){
+        p= &(*p)->sig;
+    }
+    if(*p && (cmp(&((*p)->dato),d)==0)){ 
+        return (((*p)->dato.hora*3600) + ((*p)->dato.min*60) + (*p)->dato.seg);
+    }
+    return 0;
+ }
+
+//////////////////////////////////////////////////////////////////////////////////
+void crearListaL(t_listaL *p){
+    *p = NULL;
+}
+//////////////////////////////////////////////////////////////////////////////////
+int insertarOrdenadoL(t_listaL *p,const t_datoL *d,t_cmpL cmpL){
+    t_nodoL *nue;
+    
+    while(*p && (cmpL(&((*p)->dato),d)<0)){
+        p= &(*p)->sig;
+    }
+    if(*p && (cmpL(&((*p)->dato),d)==0)){
+        (*p)->dato.precio += d->precio;
+        return 1;
+    }
+    nue = (t_nodoL*) malloc(sizeof(t_nodoL));
+    if(!nue){
+        return 0;
+    }
+    nue->sig=*p;
+    nue->dato= *d;
+    *p=nue;
+    return 1;
+}
+//////////////////////////////////////////////////////////////////////////////////
+int cmpL(const void *e1,const void *e2){
+    //e1 es la clave de la lista
+    //e2 es la clave de la nueva info
+    return strcmp(((t_datoL*)e1)->patente,((t_datoL*)e2)->patente);
+}
+//////////////////////////////////////////////////////////////////////////////////
+void imprimirListaL(t_listaL *p, FILE* fp){
+    char msg[60];
+    while(*p){
+        if((*p)->dato.precio != 0){
+            sprintf(msg,"%s %.2f\n", (*p)->dato.patente, (*p)->dato.precio);
+        }else{
+            sprintf(msg,"%s 'Aun en el garage.'\n", (*p)->dato.patente);
+        }
+        fputs(msg,fp);
+        p = &(*p)->sig;
+    }
+    return;
+}
