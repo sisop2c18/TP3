@@ -11,7 +11,6 @@ int socket_desc;
 
 void sigInt(int dummy){
     close(socket_desc);
-    endGame();
     socket_desc=0;
 }
 
