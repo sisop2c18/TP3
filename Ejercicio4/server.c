@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <signal.h>
 
-#DEFINE PORT 8080
+int PORT = 8080;
 
 int socket_desc;
 
