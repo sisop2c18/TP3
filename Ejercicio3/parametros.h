@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <dirent.h>
+#include <signal.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -20,3 +21,5 @@
 void 	clean_stdin(void);
 void 	procesar(double precio);
 void 	escribir(pid_t pid);
+void 	salirEscribir();
+void 	salirLeer();

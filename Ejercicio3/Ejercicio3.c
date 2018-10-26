@@ -17,6 +17,14 @@
 #                                                 #
 ###################################################*/
 
+FILE* fmov;
+FILE* ffac;
+int w;
+int r;
+t_datoL datoL;
+t_listaL listaF;
+t_lista listaE;
+
 void clean_stdin(void){
     int c;
     do {
@@ -25,12 +33,15 @@ void clean_stdin(void){
 }
 
 void escribir(pid_t pid){
+	signal(SIGINT, salirEscribir);
+
 	char src[8];
-	char fin[8];
-	strcpy(fin,"eexit12");
+	//char fin[8];
+	//strcpy(fin,"eexit12");
 	mkfifo("./fifo1",0666);
 
-	int w = open("./fifo1", O_WRONLY);
+	//int w = open("./fifo1", O_WRONLY);
+	w = open("./fifo1", O_WRONLY);
 
 	printf("Para finalizar ingrese: eexit12\nPID QUE LEE: %d\n", pid);
 	printf("Ingrese informacion:\n");
@@ -44,7 +55,8 @@ void escribir(pid_t pid){
    			clean_stdin();
    		}
    		write(w,src,sizeof(src));
-   	}while(strcmp(src,fin) != 0);
+   	//}while(strcmp(src,fin) != 0);
+	}while(1);
 
 	close(w);
 
@@ -54,26 +66,26 @@ void escribir(pid_t pid){
 }
 
 void procesar(double precio){
+	signal(SIGINT, salirLeer);
+
 	char pat[7];
 	char src[8];
-	char fin[8];
+	//char fin[8];
 	char fecha[64];
 	char fileMov[64];
 	char fileFac[64];
 	char imprimir[100];
 	t_dato dato;
-	t_datoL datoL;
-	t_listaL listaF;
-	t_lista listaE;
 	t_lista listaS;
-	FILE* fmov;
-	FILE* ffac;
 	time_t t;
 	struct tm tm;
 	struct tm *tm1;
 	double segs;
-	int r = open("./fifo1", O_RDONLY);
-	strcpy(fin,"EEXIT12");
+
+	//int r = open("./fifo1", O_RDONLY);
+	r = open("./fifo1", O_RDONLY);
+
+	//strcpy(fin,"EEXIT12");
 	strcpy(fileMov,"Movimientos_");
 	strcpy(fileFac,"Facturacion_");
 
@@ -110,7 +122,7 @@ void procesar(double precio){
 		for (int i = 0; i < strlen(src); i++){
 	   		src[i] = toupper((unsigned char) src[i]);
 		}
-		if(strcmp(src,fin) != 0){
+		//if(strcmp(src,fin) != 0){
 			strncpy(pat, src + 1, strlen(src) - 1 );			
 
 			t = time(NULL);
@@ -156,8 +168,9 @@ void procesar(double precio){
 					printf("%s no ingreso al garage.\n", dato.patente);
 				}
 			}
-		}	
-	}while(strcmp(src,fin) != 0);
+		//}	
+	//}while(strcmp(src,fin) != 0);
+	}while(1);
 	/*
 	mostrarLista(&listaE);
 	printf("-----------------\n");
@@ -179,8 +192,43 @@ void procesar(double precio){
 	return;
 }
 
+void salirEscribir(){
+	printf("\nSaliendo Escribir...\n");
+
+	//printf("Cerre Write...\n");
+	close(w);
+	//printf("Cerre fifo1...\n");
+	unlink("./fifo1");
+
+	//printf("GoodBye Escribir...\n");
+	exit(EXIT_SUCCESS);
+}
+
+void salirLeer(){
+	printf("\nSaliendo Leer...\n");
+
+	if(size(&listaE) > 0){
+		while(listaE){
+			strcpy(datoL.patente,listaE->dato.patente);
+			datoL.precio = 0;
+			insertarOrdenadoL(&listaF,&datoL,cmpL);
+			listaE = listaE->sig;
+		}
+	}
+	imprimirListaL(&listaF,ffac);
+
+	//printf("Cerre fmov...\n");
+	fclose(fmov);
+	//printf("Cerre ffac...\n");
+	fclose(ffac);
+	//printf("Cerre Read...\n");
+	close(r);
+	//printf("GoodBye Leer...\n");
+	exit(EXIT_SUCCESS);
+}
+
 int main(int argc, char *const argv[]){
-	
+
 	if(argc != 2){
 		printf("Ingrese:\n\t./Ejercicio3 -h\n\t./Ejercicio3 -help\n\t./Ejercicio3 -?\n\tpara solicitar ayuda.\n");
 		exit(1);
