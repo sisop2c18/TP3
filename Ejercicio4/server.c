@@ -4,6 +4,7 @@
 #include<unistd.h> 
 #include <stdio.h>
 #include <signal.h>
+#include "funciones.h"
 
 int PORT = 8080;
 
