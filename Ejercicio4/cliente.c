@@ -7,9 +7,15 @@
 
 int puerto = 8080;
 int Socket_Servidor;
-int main(int argc, char *argv[]){
-    struct sockaddr_in server;
 
+int menu();
+void cargar_nota();
+void consultar_promedio_general();
+void consultar_promedio_por_materia();
+
+int main(int argc, char *argv[]){
+    struct sockaddr_in server ;
+    struct hostent *Host;
     if( argc != 2){
         printf("Error, debe pasar la Materia a la que pertenece y la direccion del servidor \n");
         exit(EXIT_FAILURE);
@@ -23,7 +29,7 @@ int main(int argc, char *argv[]){
     //cuando pase parametros lo descomento
     //server.sin_addr=net_addr(argv[0]);
     
-    server.sin_addr=*((struct in_addr*) he->h_addr);
+    server.sin_addr.s_addr = ((struct in_addr *)(Host->h_addr))->s_addr;
 
     Socket_Servidor = socket (AF_INET, SOCK_STREAM, 0);
     
@@ -31,7 +37,7 @@ int main(int argc, char *argv[]){
         return -1;
 
 
-    if (connect(Socket_Servidor,(struct sockaddr*)&server, sizeof(struct sockaddr))==-1)
+    if (connect(Socket_Servidor,(struct sockaddr*)&server, sizeof(server))==-1)
     {
         printf("error en la conexion al servidor");
         exit(-1);
@@ -43,7 +49,7 @@ int main(int argc, char *argv[]){
 
 }
 
-void menu(){
+ int menu(){
     int opcion;
     do
     {
