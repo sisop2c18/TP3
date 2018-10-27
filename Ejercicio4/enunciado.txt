@@ -1,0 +1,47 @@
+Se tiene una base de datos de notas de alumnos en un archivo de texto, y se necesita que los
+profesores puedan actualizar la misma en forma remota y concurrente (varios profesores a la vez).
+
+La identificación del alumno se hace a través de su número de DNI, el archivo tiene un formato
+separado por comas con los siguientes campos:
+
+DNI,Nombre_Materia,Evaluacion,Nota
+
+Las evaluaciones pueden ser Primer Parcial, Segundo Parcial o Recuperatorio.
+
+Para esto se solicita que creen un servidor que atienda las solicitudes generadas desde un proceso
+cliente que se le entrega a cada docente que se encuentran en distintas máquinas de la red de la
+universidad. Al ingresar el docente informa por parámetro la materia a la que pertenece y la
+dirección del servidor. El sistema debe permitir cargar una nota y consultar el promedio de notas del alumno (tanto general como por materia); pero no se puede modificar una nota ya cargada.
+
+Mientras se está realizando una transacción (incluso la consulta de promedios) el sistema no debe
+permitir realizar otra transacción para garantizar el resultado de las consultas.
+
+No es necesario controlar duplicidad de registros ni consistencia de los datos de la base, como
+tampoco la identificación o login del docente.
+
+Tablita
+
+Obligatorio	Compila sin errores con el script entregado
+Obligatorio	Funciona correctamente según enunciado
+Obligatorio	Existe algún tipo de ayuda para la ejecución del proceso
+Obligatorio	No deja procesos zombies o huérfanos.
+Obligatorio	Valida correctamente los parámetros
+Obligatorio	Funciona tanto localmente como a través de la red desde distintas máquinas
+Obligatorio	Utiliza sockets y threads
+Obligatorio	Soporta múltiples clientes (se probará con más de 5)
+Deseable	Maneja correctamente el cierre de los puertos al finalizar
+Deseable	Tiene archivo de configuración (deben entregarlo)
+Deseable	Se conecta con nombre de máquinas
+
+
+
+
+
+
+
+
+
+
+
+
+

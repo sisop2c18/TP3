@@ -2,10 +2,69 @@
 #include <stdlib.h>
 #include "funciones.h"
 
- int menu(){
+int leer_socket (void *data, int lon, t_dato d){
+    int read = 0;
+    int aux = 0;
+
+    if ((d.socket == -1) || (data == NULL) || (lon < 1)){
+        return -1;
+    }
+    while (read < lon){
+        aux = recv(d.socket, data + read, lon - read,MSG_WAITALL);
+        if (aux > 0){
+            read = read + aux;
+        }else{
+            if (aux == 0){
+                return read;
+            }
+            if (aux == -1){
+                switch (errno) {
+                    case EINTR:
+                    case EAGAIN:
+                        usleep (100);
+                        break;
+                    default:
+                        return -1;
+                }
+            }
+        }
+    }
+    return read;
+}
+
+int write_socket (void * data, int lon , t_dato d){
+    int sent = 0;
+    int aux = 0;
+
+    if ((d.socket == -1) || (data == NULL) || (lon < 1)){
+        return -1;
+    }
+    while (sent < lon){
+        aux = send(d.socket, data + sent, lon - sent,0);
+        if (aux > 0){
+            sent = sent + aux;
+        }else{
+            if(aux == 0){
+                return sent;
+            }else{
+                return -1;
+            }
+        }
+    }
+    return sent;
+}
+
+/*
+#define CARGAR 1 //CARGAR NOTAS
+#define GENERAL 2 //PROMEDIO GENERAL
+#define MATERIA 3 //PROMEDIO MATERIA
+#define QUIT 4 //CLIENTE SE DESCONECTO
+*/
+int menu(){
     int opcion;
-    do
-    {
+    int go=1;
+
+    do{
         printf( "\n   1. Cargar nota. " );
         printf( "\n   2. Consultar promedio de notas general. ");
         printf( "\n   3. Consultar promedio de notas por materia. ");
@@ -14,8 +73,7 @@
 
         scanf( "%d", &opcion );
 
-        switch ( opcion )
-        {
+        switch(opcion){
             case 1: cargar_nota();
                     break;
 
@@ -24,22 +82,110 @@
 
             case 3: consultar_promedio_por_materia();
                     break;
+
+            case 4: salir();
+                    go=0;
+                    break;
+
+            default:cls();
+                    printf("Opcion incorrecta, re ingrese.\n");
+                    break;
          }
 
-    } while ( opcion != 4 );
+    }while(go);
 
     return 0;
 }
 
 
 void cargar_nota(){
-    printf("ingresaste a cargar notas");
+    int opcion;
+    int go=1;
+    t_comando dat;
+
+    cls();
+    printf("Ingresaste a cargar notas.\n\n");
+    dat.comando=CARGAR;
+
+    printf("Ingrese documento del alumno.\n");
+    scanf("%d",&dat.dni);
+
+    do{
+        printf("Ingrese nota.\n");
+        scanf("%d",&dat.nota);
+    }while(dat.nota < 1 || dat.nota > 10);
+
+    printf("Seleccione Instancia.\n");
+
+    do{
+        printf( "\n   1. Primer Parcial. " );
+        printf( "\n   2. Segundo Parcial. ");
+        printf( "\n   3. Recuperatorio. ");
+        printf( "\n\n   Introduzca opcion (1-3): ");
+
+        scanf( "%d", &opcion );
+
+        switch(opcion){
+            case 1: // cargo a la struct primer parcial
+                    strcpy(dat.instancia,PP);
+                    go=0;
+                    break;
+
+            case 2: // cargo a la struct segundo parcial
+                    strcpy(dat.instancia,SP);
+                    go=0;
+                    break;
+
+            case 3: // cargo a la struct recuperatorio parcial
+                    strcpy(dat.instancia,REC);
+                    go=0;
+                    break;
+
+            default:cls();
+                    printf("Opcion incorrecta, re ingrese.\n");
+                    break;
+         }
+
+    }while(go);
+
+    printf("Usted ha ingresado: %d - %d - %s - %d\n", dat.comando, dat.dni, dat.instancia, dat.nota);
+
+    return;
 }
 
 void consultar_promedio_general(){
-    printf("ingresaste a promedio general");
+    t_comando dat;
+
+    cls();
+    printf("Ingresaste a promedio general.\n\n");
+    dat.comando=GENERAL;
+
+    printf("Ingrese documento del alumno.\n");
+    scanf("%d",&dat.dni);
+
+    printf("Usted ha ingresado: %d - %d\n", dat.comando, dat.dni);
 }
 
 void consultar_promedio_por_materia(){
-    printf("ingresaste a promedio por materia");
+    t_comando dat;
+
+    cls();
+    printf("Ingresaste a promedio por materia.\n\n");
+    dat.comando=MATERIA;
+
+    printf("Ingrese documento del alumno.\n");
+    scanf("%d",&dat.dni);
+
+    printf("Usted ha ingresado: %d - %d\n", dat.comando, dat.dni);
+}
+
+void salir(){
+    t_comando dat;
+
+    cls();
+    dat.comando=QUIT;
+
+    printf("Usted ha ingresado: %d\n", dat.comando);
+
+    printf("Bye bye...\n");
 }
