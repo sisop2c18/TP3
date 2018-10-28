@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <ctype.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "funciones_Lista.h"
@@ -19,12 +20,15 @@
 
 t_listaL bd;
 t_lista clientes;
+char materia[50];
 
-int menu();
-void cargar_nota();
-void consultar_promedio_general();
-void consultar_promedio_por_materia();
-void salir();
+void* server_run(void *args);
+
+int menu(t_dato *);
+void cargar_nota(t_dato *);
+void consultar_promedio_general(t_dato *);
+void consultar_promedio_por_materia(t_dato *);
+void salir(t_dato *);
 int normalizar(char*);
 int leer_socket (void *, int lon, t_dato*);
 int escribir_socket (void *, int lon , t_dato*);

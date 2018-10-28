@@ -69,7 +69,7 @@ void mostrarClientes(t_lista *p){
         return;
     }
     while(*p){
-        printf("ID: %d - Socket: %d\n", ((*p)->dato).id, ((*p)->dato).socket);
+        printf("ID: %d - Socket: %d IDTHREAD: %ld\n", ((*p)->dato).id, ((*p)->dato).socket, ((*p)->dato).threadId);
         p = &(*p)->sig;
     }
 }
@@ -78,18 +78,18 @@ void mostrarClientes(t_lista *p){
 // 0 = NO EXISTE
 // 1 = EXISTE
 
-int exist(t_lista *p,const t_dato *d,t_cmp cmp){
-    t_nodo *nue;
-    while(*p && (cmp(&((*p)->dato),d)<0)){
+int existInDB(t_listaL *p,const t_comando *d,t_cmpG cmpG){
+    t_nodoL *nue;
+    while(*p && (cmpG(&((*p)->dato),d) != 0)){
         p= &(*p)->sig;
     }
-    if(*p && (cmp(&((*p)->dato),d)==0)){
+    if(*p && (cmpG(&((*p)->dato),d) == 0)){
         return 1;
     }
     return 0;
  }
 /////////////////////////////////////////
-void crearBD(t_listaL *p){
+void crearDB(t_listaL *p){
     *p = NULL;
 }
  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,6 +177,15 @@ int cmpL(const void *e1,const void *e2){
     return retorno;
 }
 //////////////////////////////////////////////////////////////////////////////////
+void deleteDB(t_listaL *p){
+    t_nodoL *aux;
+    while(*p){
+        aux = *p;
+        p = &(*p)->sig;
+        free(aux);
+    }
+}
+//////////////////////////////////////////////////////////////////////////////////
 void mostrarDB(t_listaL *p){
     if(*p == NULL){
         return;
@@ -203,7 +212,10 @@ double devolverGeneral(t_listaL *p,const t_comando *d, t_cmpG cmpG){
         }
         p = &(*p)->sig;
     }
-    general = notas / cantMateria;
+    if(cantMateria != 0){
+        general = notas / cantMateria;
+    }
+
     return general;
 }
 //////////////////////////////////////////////////////////////////////////////////
@@ -229,7 +241,9 @@ double devolverMateria(t_listaL *p,const t_comando *d, t_cmpM cmpM){
         }
         p = &(*p)->sig;
     }
-    general = notas / cantMateria;
+    if(cantMateria != 0){
+        general = notas / cantMateria;
+    }
     return general;
 }
 //////////////////////////////////////////////////////////////////////////////////

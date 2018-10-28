@@ -16,6 +16,15 @@ struct sockaddr_in server;
 //t_lista clientes;
 
 void sigInt(int dummy){
+    // cancelar todos los threads
+    printf("Cerrando todo...\n");
+    t_lista first = clientes;
+    while(first){
+        pthread_join(first->dato.threadId, NULL);  
+        first = first->sig;
+    }
+    vaciarLista(&clientes);
+    deleteDB(&bd);
     close(client_sock);
     close(socket_desc);
     socket_desc=0;
@@ -54,7 +63,7 @@ int main(int argc , char *argv[]){
         exit(1);
     }
 
-    crearBD(&bd);
+    crearDB(&bd);
     printf("Cargando DB...\n\n");
     cargarDB(&bd);
 
@@ -86,6 +95,7 @@ int main(int argc , char *argv[]){
             printf("Nueva conexion\n");
             d.id=id++;
             d.socket=client_sock;
+            pthread_create( &(d.threadId), NULL , server_run , (void*) &d);
             addUsuario(&clientes,&d,cmp);
             mostrarClientes(&clientes);
         }

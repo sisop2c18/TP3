@@ -37,7 +37,7 @@ typedef int (*t_cmpL)(const void *e1,const void *e2);
 typedef int (*t_cmpG)(const void *e1,const void *e2);
 typedef int (*t_cmpM)(const void *e1,const void *e2);
 ///////////////////////////////////////////////////////////////
-void    crearBD(t_listaL *);
+void    crearDB(t_listaL *);
 void    cargarDB(t_listaL*);
 int     addDB(t_listaL*,const t_comando*);
 int     addLista(t_listaL*,const t_comando*,t_cmpL cmpL);
@@ -47,6 +47,8 @@ int     cmpG(const void*,const void*);
 int     cmpM(const void*,const void*);
 double  devolverGeneral(t_listaL *,const t_comando *, t_cmpG cmpG);
 double  devolverMateria(t_listaL *,const t_comando *, t_cmpM cmpM);
+void    deleteDB(t_listaL *);
+int     existInDB(t_listaL *,const t_comando *,t_cmpG cmpG);
 
 void    crearLista(t_lista *);
 void    vaciarLista(t_lista*);
@@ -58,7 +60,6 @@ int     eliminarUser(t_lista *p, const t_dato *,t_cmp cmp);
 
 
 int    size(t_lista*);
-int    exist(t_lista *,const t_dato *,t_cmp cmp);
 double   buscarHora(t_lista *,const t_dato *,t_cmp cmp);
 
 void    imprimirListaL(t_listaL *, FILE*);

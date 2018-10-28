@@ -54,59 +54,86 @@ int escribir_socket (void * data, int lon , t_dato *d){
     return sent;
 }
 //////////////////////////////////////////////////////////////////////////////////////
-void server_run(void *args){
+void* server_run(void *args){
+    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
     int leido = 0;
     t_dato *dato = args;
     t_comando c;
     double prom;
 
+    printf("Hilo server_run activo\n");
+
     while(leido != -1){
         leido = leer_socket(&c, sizeof(t_comando),dato);
-
+        
         if(leido == 0){
             usleep (100);
             continue;
         }
+        
+        printf("COMANDO = %d\n", c.comando);
 
         switch(c.comando){
             case CARGAR :
                 // do cargar
 
                 // P DEL MUTEX creo que tendria 2 mutex uno para general y otro para materia, asi puedo consultar los dos promedios al mismo tiempo
-
-                addLista(&bd,&c,cmpL);
-
+                pthread_mutex_lock(&mutex);
+                if(addLista(&bd,&c,cmpL)){
+                    // agregar al archivo bd.txt
+                    mostrarDB(&bd);
+                    // sent info OK
+                }else{
+                    // EXISTE MANDAR MSJ ERROR
+                }
+                pthread_mutex_unlock(&mutex);
                 // V DEL MUTEX
 
-                // agregar al archivo bd.txt SI ADDLISTA DEVUELVE 1
-                //sent info ok o no
                 break;
+
             case GENERAL :
                 // do promedio general
 
-                // P DEL MUTEX
+                if(existInDB(&bd,&c,cmpG)){
+                     // P DEL MUTEX
+                    pthread_mutex_lock(&mutex);
+                    prom = devolverGeneral(&bd,&c,cmpG);
+                    printf("GENERAL = %.2f\n", prom);
+                    pthread_mutex_unlock(&mutex);
+                    // V DEL MUTEX
 
-                prom = devolverGeneral(&bd,&c,cmpG);
-
-                // V DEL MUTEX
-
-                //sent info ok o no
+                    // MANDAR EL PROMEDIO
+                }else{
+                    // NO EXISTE MANDAR MSJ ERROR
+                    printf("NO EXISTE GENERAL\n");
+                }
                 break;
+
             case MATERIA :
                 // do promedio materia
+                if(existInDB(&bd,&c,cmpG)){
+                    // P DEL MUTEX
+                    pthread_mutex_lock(&mutex);
+                    prom = devolverMateria(&bd,&c,cmpM);
+                    printf("MATERIA = %.2f\n", prom);
+                    pthread_mutex_unlock(&mutex);
+                    // V DEL MUTEX
 
-                // P DEL MUTEX
-
-                prom = devolverMateria(&bd,&c,cmpM);
-
-                // V DEL MUTEX
-                
-                //sent info ok o no
+                    // MANDAR EL PROMEDIO
+                }else{
+                    // NO EXISTE MANDAR MSJ ERROR
+                    printf("NO EXISTE MATERIA\n");
+                }
                 break;
+
             case QUIT :
                 // sacar de la lista al user
                 eliminarUser(&clientes,dato,cmp);
+                // pongo esto para que termine el hilo
+                leido=-1;
+                printf("QUIT\n");
                 break;
+
             default:
                 printf("OPCION DESCONOCIDA!\n");
                 exit(1);
@@ -114,9 +141,7 @@ void server_run(void *args){
         }
     }
 
-    free(args);
-
-    return;
+    return 0;
 }
 //////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -125,7 +150,7 @@ void server_run(void *args){
 #define MATERIA 3 //PROMEDIO MATERIA
 #define QUIT 4 //CLIENTE SE DESCONECTO
 */
-int menu(){
+int menu(t_dato *sv){
     int opcion;
     int go=1;
 
@@ -139,16 +164,16 @@ int menu(){
         scanf( "%d", &opcion );
 
         switch(opcion){
-            case 1: cargar_nota();
+            case 1: cargar_nota(sv);
                     break;
 
-            case 2: consultar_promedio_general();
+            case 2: consultar_promedio_general(sv);
                     break;
 
-            case 3: consultar_promedio_por_materia();
+            case 3: consultar_promedio_por_materia(sv);
                     break;
 
-            case 4: salir();
+            case 4: salir(sv);
                     go=0;
                     break;
 
@@ -162,7 +187,7 @@ int menu(){
     return 0;
 }
 //////////////////////////////////////////////////////////////////////////////////////
-void cargar_nota(){
+void cargar_nota(t_dato *sv){
     int opcion;
     int go=1;
     t_comando dat;
@@ -170,6 +195,7 @@ void cargar_nota(){
     cls();
     printf("Ingresaste a cargar notas.\n\n");
     dat.comando=CARGAR;
+    strcpy(dat.materia,materia);
 
     printf("Ingrese documento del alumno.\n");
     scanf("%d",&dat.dni);
@@ -214,10 +240,12 @@ void cargar_nota(){
 
     printf("Usted ha ingresado: %d - %d - %s - %d\n", dat.comando, dat.dni, dat.instancia, dat.nota);
 
+    escribir_socket(&dat, sizeof(t_comando), sv);
+
     return;
 }
 //////////////////////////////////////////////////////////////////////////////////////
-void consultar_promedio_general(){
+void consultar_promedio_general(t_dato *sv){
     t_comando dat;
 
     cls();
@@ -227,10 +255,12 @@ void consultar_promedio_general(){
     printf("Ingrese documento del alumno.\n");
     scanf("%d",&dat.dni);
 
+    escribir_socket(&dat, sizeof(t_comando), sv);
+
     printf("Usted ha ingresado: %d - %d\n", dat.comando, dat.dni);
 }
 //////////////////////////////////////////////////////////////////////////////////////
-void consultar_promedio_por_materia(){
+void consultar_promedio_por_materia(t_dato *sv){
     t_comando dat;
 
     cls();
@@ -239,17 +269,27 @@ void consultar_promedio_por_materia(){
 
     printf("Ingrese documento del alumno.\n");
     scanf("%d",&dat.dni);
+    strcpy(dat.materia,materia);
+
+    escribir_socket(&dat, sizeof(t_comando), sv);
 
     printf("Usted ha ingresado: %d - %d\n", dat.comando, dat.dni);
 }
 //////////////////////////////////////////////////////////////////////////////////////
-void salir(){
+void salir(t_dato *sv){
     t_comando dat;
 
     cls();
+
     dat.comando=QUIT;
+    /*dat.dni=0;
+    strcpy(dat.materia,"");
+    strcpy(dat.instancia,"");
+    dat.nota=0;*/
 
     printf("Usted ha ingresado: %d\n", dat.comando);
+
+    escribir_socket(&dat, sizeof(t_comando), sv);
 
     printf("Bye bye...\n");
 }

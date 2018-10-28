@@ -21,7 +21,7 @@ void set(const char *y, int z){
 }
 
 int main(int argc, char *argv[]){
-    char materia[50];
+    t_dato sv;
 
     struct hostent *Host;
 
@@ -60,7 +60,8 @@ int main(int argc, char *argv[]){
 
     printf("Bienvenido, Profesor de %s\n", materia);
 
-    menu();
+    sv.socket = Socket_Servidor;
+    menu(&sv); 
 
     close(Socket_Servidor);
 
