@@ -56,12 +56,12 @@ int escribir_socket (void * data, int lon , t_dato *d){
 //////////////////////////////////////////////////////////////////////////////////////
 void* server_run(void *args){
     pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    char buffer[256];
     int leido = 0;
+    t_listaP promedios;
     t_dato *dato = args;
     t_comando c;
     double prom;
-
-    printf("Hilo server_run activo\n");
 
     while(leido != -1){
         leido = leer_socket(&c, sizeof(t_comando),dato);
@@ -83,9 +83,12 @@ void* server_run(void *args){
                     // agregar al archivo bd.txt
                     mostrarDB(&bd);
                     // sent info OK
+                    strcpy(buffer,"Se ha cargado en la DB correctamente.");
                 }else{
                     // EXISTE MANDAR MSJ ERROR
+                    strcpy(buffer,"Ya se encuentra cargado un registro para esa instancia de examen.");
                 }
+                escribir_socket(buffer, 256, dato);
                 pthread_mutex_unlock(&mutex);
                 // V DEL MUTEX
 
@@ -101,29 +104,37 @@ void* server_run(void *args){
                     printf("GENERAL = %.2f\n", prom);
                     pthread_mutex_unlock(&mutex);
                     // V DEL MUTEX
-
+                    sprintf(buffer,"El promedio general de %d es %.2f", c.dni, prom);
                     // MANDAR EL PROMEDIO
                 }else{
                     // NO EXISTE MANDAR MSJ ERROR
-                    printf("NO EXISTE GENERAL\n");
+                    sprintf(buffer,"No existe persona con dni = %d", c.dni);
                 }
+                escribir_socket(buffer, 256, dato);
                 break;
 
             case MATERIA :
                 // do promedio materia
                 if(existInDB(&bd,&c,cmpG)){
+                    crearPromedio(&promedios);
+                    // ordenar lista bd
+
                     // P DEL MUTEX
                     pthread_mutex_lock(&mutex);
-                    prom = devolverMateria(&bd,&c,cmpM);
-                    printf("MATERIA = %.2f\n", prom);
+                    devolverMateria(&bd,&promedios,&c,cmpG);
                     pthread_mutex_unlock(&mutex);
                     // V DEL MUTEX
-
+                    printf("******************************************************************\n");
+                    printf("PROMEDIO POR MATERIA DE %d\n", c.dni);
+                    mostrarPromedios(&promedios, dato.socket);
+                    printf("******************************************************************\n");
                     // MANDAR EL PROMEDIO
                 }else{
                     // NO EXISTE MANDAR MSJ ERROR
-                    printf("NO EXISTE MATERIA\n");
+                    sprintf(buffer,"No existe persona con dni = %d", c.dni);
+                    escribir_socket(buffer, 256, dato);
                 }
+                //escribir_socket(&promedios, sizeof(t_listaP), dato);
                 break;
 
             case QUIT :
@@ -132,6 +143,8 @@ void* server_run(void *args){
                 // pongo esto para que termine el hilo
                 leido=-1;
                 printf("QUIT\n");
+                sprintf(buffer,"Hasta luego!");
+                escribir_socket(buffer, 256, dato);
                 break;
 
             default:
@@ -189,7 +202,8 @@ int menu(t_dato *sv){
 //////////////////////////////////////////////////////////////////////////////////////
 void cargar_nota(t_dato *sv){
     int opcion;
-    int go=1;
+    int go = 1;
+    char buffer[256];
     t_comando dat;
 
     cls();
@@ -238,15 +252,16 @@ void cargar_nota(t_dato *sv){
 
     }while(go);
 
-    printf("Usted ha ingresado: %d - %d - %s - %d\n", dat.comando, dat.dni, dat.instancia, dat.nota);
-
     escribir_socket(&dat, sizeof(t_comando), sv);
-
+    leer_socket(buffer, 256, sv);
+    cls();
+    printf("%s\n\n", buffer);
     return;
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void consultar_promedio_general(t_dato *sv){
     t_comando dat;
+    char buffer[256];
 
     cls();
     printf("Ingresaste a promedio general.\n\n");
@@ -257,11 +272,15 @@ void consultar_promedio_general(t_dato *sv){
 
     escribir_socket(&dat, sizeof(t_comando), sv);
 
-    printf("Usted ha ingresado: %d - %d\n", dat.comando, dat.dni);
+    leer_socket(buffer, 256, sv);
+    cls();
+    printf("%s\n\n", buffer);
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void consultar_promedio_por_materia(t_dato *sv){
     t_comando dat;
+    t_listaP prom;
+    crearPromedio(&prom);
 
     cls();
     printf("Ingresaste a promedio por materia.\n\n");
@@ -269,29 +288,32 @@ void consultar_promedio_por_materia(t_dato *sv){
 
     printf("Ingrese documento del alumno.\n");
     scanf("%d",&dat.dni);
-    strcpy(dat.materia,materia);
 
     escribir_socket(&dat, sizeof(t_comando), sv);
 
     printf("Usted ha ingresado: %d - %d\n", dat.comando, dat.dni);
+
+    //leer_socket(&prom, sizeof(t_listaP), sv);
+    cls();
+    printf("******************************************************************\n");
+    printf("PROMEDIO POR MATERIA DE %d\n", dat.dni);
+    // HACE BUCLE CHETO PARA LEER HASTA QUE LLEGA FIN
+    leer_socket(buffer, 256, sv);
+    mostrarPromedios(&prom);
+    printf("******************************************************************\n");
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void salir(t_dato *sv){
     t_comando dat;
-
-    cls();
+    char buffer[256];
 
     dat.comando=QUIT;
-    /*dat.dni=0;
-    strcpy(dat.materia,"");
-    strcpy(dat.instancia,"");
-    dat.nota=0;*/
-
-    printf("Usted ha ingresado: %d\n", dat.comando);
 
     escribir_socket(&dat, sizeof(t_comando), sv);
-
-    printf("Bye bye...\n");
+    
+    leer_socket(buffer, 256, sv);
+    cls();
+    printf("%s\n\n", buffer);
 }
 //////////////////////////////////////////////////////////////////////////////////////
 int normalizar(char* cad){

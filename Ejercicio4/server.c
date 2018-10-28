@@ -69,20 +69,6 @@ int main(int argc , char *argv[]){
 
     mostrarDB(&bd);
 
-    // testing promedios
-    t_comando dato;
-    double prom;
-    dato.dni = 22222222;
-    prom = devolverGeneral(&bd,&dato,cmpG);
-    printf("Prom General de %d = %.2f\n", dato.dni, prom);
-    dato.dni = 11111111;
-    strcpy(dato.materia,"Base De Datos");
-    prom = devolverMateria(&bd,&dato,cmpM);
-    printf("Prom Materia (%s) de %d = %.2f\n", dato.materia, dato.dni, prom);
-    crearLista(&clientes);
-    printf("Esperando conexiones...\n\n");
-	//
-
     //aca irian las configuraciones del cliente CREO
 
     //esta activo esperando a multiples clientes

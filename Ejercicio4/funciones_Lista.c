@@ -218,6 +218,79 @@ double devolverGeneral(t_listaL *p,const t_comando *d, t_cmpG cmpG){
 
     return general;
 }
+/////////////////////////////////////////
+void crearPromedio(t_listaP *p){
+    *p = NULL;
+}
+////////////////////////////////////////////////////////////////////////////////
+int devolverMateria(t_listaL *p, t_listaP *c, const t_comando *d, t_cmpG cmpG){
+    t_materia m;
+    if(*p == NULL){
+        return 0;
+    }
+    while(*p){
+        if(cmpG(&((*p)->dato),d)==0){
+            strcpy(m.materia,(*p)->dato.materia);
+            m.nota = (*p)->dato.nota;
+            m.cantMaterias = 1;
+            insertProm(c,&m,cmpL);
+        }
+        p = &(*p)->sig;
+    }
+    while(*c){
+        ((*c)->dato.prom) = ((*c)->dato.nota) / ((*c)->dato.cantMaterias);
+        c = &(*c)->sig;
+    }
+    return 1;
+}
+///////////////////////////////////////////////////////////////////////////////////
+int insertProm(t_listaP *p, const t_materia *d, t_cmpM cmpM){
+    t_nodoM *nue;
+    while(*p && (cmpM(&((*p)->dato),d)<0)){
+        p= &(*p)->sig;
+    }
+    if(*p && (cmpM(&((*p)->dato),d)==0)){
+        (*p)->dato.nota += d->nota;
+        ((*p)->dato.cantMaterias)++;
+        return 1;
+    }
+    nue = (t_nodoM*) malloc(sizeof(t_nodoM));
+    if(!nue){
+        return 0;
+    }
+    nue->sig=*p;
+    nue->dato= *d;
+    *p=nue;
+    return 1;
+}
+//////////////////////////////////////////////////////////////////////////////////
+/*
+void mostrarPromedios(t_listaP *p){
+    if(*p == NULL){
+        printf("No se encuentra ese DNI en la BD.\n");
+        return;
+    }
+    while(*p){
+        printf("Materia: %s - Promedio: %.2f\n", ((*p)->dato).materia, ((*p)->dato).prom);
+        p = &(*p)->sig;
+    }
+}
+*/
+
+void mostrarPromedios(t_listaP *p, int fd){
+    char buffer[256];
+    if(*p == NULL){
+        printf("No se encuentra ese DNI en la BD.\n");
+        return;
+    }
+    while(*p){
+        sprintf(buffer,"Materia: %s - Promedio: %.2f\n", ((*p)->dato).materia, ((*p)->dato).prom);
+        escribir_socket(buffer, 256, fd);
+        p = &(*p)->sig;
+    }
+    sprintf(buffer,"FIN");
+    escribir_socket(buffer, 256, fd);
+}
 //////////////////////////////////////////////////////////////////////////////////
 int cmpG(const void *e1,const void *e2){
     //e1 es la clave de la lista
@@ -225,37 +298,10 @@ int cmpG(const void *e1,const void *e2){
     return ((t_comando*)e1)->dni - ((t_comando*)e2)->dni;
 }
 //////////////////////////////////////////////////////////////////////////////////
-double devolverMateria(t_listaL *p,const t_comando *d, t_cmpM cmpM){
-    double general=0;
-    double notas=0;
-    int cantMateria=0;
-
-    if(*p == NULL){
-        return 0;
-    }
-
-    while(*p){
-        if(cmpM(&((*p)->dato),d)==0){
-            notas += (*p)->dato.nota;
-            cantMateria++;
-        }
-        p = &(*p)->sig;
-    }
-    if(cantMateria != 0){
-        general = notas / cantMateria;
-    }
-    return general;
-}
-//////////////////////////////////////////////////////////////////////////////////
 int cmpM(const void *e1,const void *e2){
     //e1 es la clave de la lista
     //e2 es la clave de la nueva info
-    int retorno = 0;
-
-    retorno += ((t_comando*)e1)->dni - ((t_comando*)e2)->dni;
-    retorno += strcmp(((t_comando*)e1)->materia,((t_comando*)e2)->materia);
-
-    return retorno;
+    return strcmp(((t_materia*)e1)->materia,((t_materia*)e2)->materia);
 }
 /*
 //////////////////////////////////////////////////////////////////////////////////
