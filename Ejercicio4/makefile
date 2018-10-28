@@ -11,5 +11,6 @@ funciones.o: funciones.h funciones.c funciones_Lista.h
 
 funciones_Lista.o: funciones_Lista.h funciones_Lista.c
 	gcc -c funciones_Lista.c
+	
 clean :
 	rm *.o Client Server

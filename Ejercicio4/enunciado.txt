@@ -32,16 +32,3 @@ Obligatorio	Soporta múltiples clientes (se probará con más de 5)
 Deseable	Maneja correctamente el cierre de los puertos al finalizar
 Deseable	Tiene archivo de configuración (deben entregarlo)
 Deseable	Se conecta con nombre de máquinas
-
-
-
-
-
-
-
-
-
-
-
-
-

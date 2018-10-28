@@ -22,7 +22,7 @@ int addUsuario(t_lista *p,const t_dato *d,t_cmp cmp){
     return 1;
  }
 //////////////////////////////////////////////////////////////////////////////////
- int cmp(const void *e1,const void *e2){
+int cmp(const void *e1,const void *e2){
     //e1 es la clave de la lista
     //e2 es la clave de la nueva info
     return ((t_dato*)e1)->socket - ((t_dato*)e2)->socket;
@@ -41,7 +41,7 @@ void vaciarLista(t_lista *p){
 // 1 = ELimino
 // 0 = no existe
 
-int eliminarDato(t_lista *p, const t_dato *d,t_cmp cmp){
+int eliminarUser(t_lista *p, const t_dato *d,t_cmp cmp){
     t_nodo *aux;
     while(*p && (cmp(&((*p)->dato),d)<0)){
         p= &(*p)->sig;
@@ -142,6 +142,41 @@ int addDB(t_listaL *p,const t_comando *d){
     return 1;
 }
 //////////////////////////////////////////////////////////////////////////////////
+int addLista(t_listaL *p,const t_comando *d, t_cmpL cmpL){
+    t_nodoL *nue;
+    while(*p && (cmpL(&((*p)->dato),d)<0)){
+        p= &(*p)->sig;
+    }
+    if(*p && (cmpL(&((*p)->dato),d)==0)){
+        return 0;
+    }
+    nue = (t_nodoL*) malloc(sizeof(t_nodoL));
+    if(!nue){
+        return 0;
+    }
+    nue->sig=*p;
+    nue->dato= *d;
+    *p=nue;
+    return 1;
+}
+//////////////////////////////////////////////////////////////////////////////////
+int cmpL(const void *e1,const void *e2){
+    //e1 es la clave de la lista
+    //e2 es la clave de la nueva info
+    /*
+    int dni;
+    char materia[50];
+    char instancia[16];
+    */
+    int retorno = 0;
+
+    retorno += strcmp(((t_comando*)e1)->instancia,((t_comando*)e2)->instancia);
+    retorno += strcmp(((t_comando*)e1)->materia,((t_comando*)e2)->materia);
+    retorno += ((t_comando*)e1)->dni - ((t_comando*)e2)->dni;
+
+    return retorno;
+}
+//////////////////////////////////////////////////////////////////////////////////
 void mostrarDB(t_listaL *p){
     if(*p == NULL){
         return;
@@ -150,6 +185,63 @@ void mostrarDB(t_listaL *p){
         printf("DNI: %d - Nombre Materia: %s - Instancia: %s - Nota: %d\n", ((*p)->dato).dni, ((*p)->dato).materia, ((*p)->dato).instancia, ((*p)->dato).nota);
         p = &(*p)->sig;
     }
+}
+//////////////////////////////////////////////////////////////////////////////////
+double devolverGeneral(t_listaL *p,const t_comando *d, t_cmpG cmpG){
+    double general=0;
+    double notas=0;
+    int cantMateria=0;
+
+    if(*p == NULL){
+        return 0;
+    }
+
+    while(*p){
+        if(cmpG(&((*p)->dato),d)==0){
+            notas += (*p)->dato.nota;
+            cantMateria++;
+        }
+        p = &(*p)->sig;
+    }
+    general = notas / cantMateria;
+    return general;
+}
+//////////////////////////////////////////////////////////////////////////////////
+int cmpG(const void *e1,const void *e2){
+    //e1 es la clave de la lista
+    //e2 es la clave de la nueva info
+    return ((t_comando*)e1)->dni - ((t_comando*)e2)->dni;
+}
+//////////////////////////////////////////////////////////////////////////////////
+double devolverMateria(t_listaL *p,const t_comando *d, t_cmpM cmpM){
+    double general=0;
+    double notas=0;
+    int cantMateria=0;
+
+    if(*p == NULL){
+        return 0;
+    }
+
+    while(*p){
+        if(cmpM(&((*p)->dato),d)==0){
+            notas += (*p)->dato.nota;
+            cantMateria++;
+        }
+        p = &(*p)->sig;
+    }
+    general = notas / cantMateria;
+    return general;
+}
+//////////////////////////////////////////////////////////////////////////////////
+int cmpM(const void *e1,const void *e2){
+    //e1 es la clave de la lista
+    //e2 es la clave de la nueva info
+    int retorno = 0;
+
+    retorno += ((t_comando*)e1)->dni - ((t_comando*)e2)->dni;
+    retorno += strcmp(((t_comando*)e1)->materia,((t_comando*)e2)->materia);
+
+    return retorno;
 }
 /*
 //////////////////////////////////////////////////////////////////////////////////

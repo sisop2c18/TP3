@@ -1,5 +1,6 @@
 22222222,Sistemas Operativos,Primer Parcial,8
 22222222,Sistemas Operativos,Segundo Parcial,8
-11111111,Base de Datos,Primer Parcial,7
-11111111,Base de Datos,Segundo Parcial,2
-11111111,Base de Datos,Recuperatorio,7
+22222222,Base De Datos,Primer Parcial,8
+11111111,Base De Datos,Primer Parcial,7
+11111111,Base De Datos,Segundo Parcial,2
+11111111,Base De Datos,Recuperatorio,7

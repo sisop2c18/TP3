@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "funciones.h"
-
-int leer_socket (void *data, int lon, t_dato d){
+//////////////////////////////////////////////////////////////////////////////////////
+int leer_socket (void *data, int lon, t_dato *d){
     int read = 0;
     int aux = 0;
 
-    if ((d.socket == -1) || (data == NULL) || (lon < 1)){
+    if ((d->socket == -1) || (data == NULL) || (lon < 1)){
         return -1;
     }
     while (read < lon){
-        aux = recv(d.socket, data + read, lon - read,MSG_WAITALL);
+        aux = recv(d->socket, data + read, lon - read,MSG_WAITALL);
         if (aux > 0){
             read = read + aux;
         }else{
@@ -31,16 +31,16 @@ int leer_socket (void *data, int lon, t_dato d){
     }
     return read;
 }
-
-int write_socket (void * data, int lon , t_dato d){
+//////////////////////////////////////////////////////////////////////////////////////
+int escribir_socket (void * data, int lon , t_dato *d){
     int sent = 0;
     int aux = 0;
 
-    if ((d.socket == -1) || (data == NULL) || (lon < 1)){
+    if ((d->socket == -1) || (data == NULL) || (lon < 1)){
         return -1;
     }
     while (sent < lon){
-        aux = send(d.socket, data + sent, lon - sent,0);
+        aux = send(d->socket, data + sent, lon - sent,0);
         if (aux > 0){
             sent = sent + aux;
         }else{
@@ -53,7 +53,72 @@ int write_socket (void * data, int lon , t_dato d){
     }
     return sent;
 }
+//////////////////////////////////////////////////////////////////////////////////////
+void server_run(void *args){
+    int leido = 0;
+    t_dato *dato = args;
+    t_comando c;
+    double prom;
 
+    while(leido != -1){
+        leido = leer_socket(&c, sizeof(t_comando),dato);
+
+        if(leido == 0){
+            usleep (100);
+            continue;
+        }
+
+        switch(c.comando){
+            case CARGAR :
+                // do cargar
+
+                // P DEL MUTEX creo que tendria 2 mutex uno para general y otro para materia, asi puedo consultar los dos promedios al mismo tiempo
+
+                addLista(&bd,&c,cmpL);
+
+                // V DEL MUTEX
+
+                // agregar al archivo bd.txt SI ADDLISTA DEVUELVE 1
+                //sent info ok o no
+                break;
+            case GENERAL :
+                // do promedio general
+
+                // P DEL MUTEX
+
+                prom = devolverGeneral(&bd,&c,cmpG);
+
+                // V DEL MUTEX
+
+                //sent info ok o no
+                break;
+            case MATERIA :
+                // do promedio materia
+
+                // P DEL MUTEX
+
+                prom = devolverMateria(&bd,&c,cmpM);
+
+                // V DEL MUTEX
+                
+                //sent info ok o no
+                break;
+            case QUIT :
+                // sacar de la lista al user
+                eliminarUser(&clientes,dato,cmp);
+                break;
+            default:
+                printf("OPCION DESCONOCIDA!\n");
+                exit(1);
+            break;
+        }
+    }
+
+    free(args);
+
+    return;
+}
+//////////////////////////////////////////////////////////////////////////////////////
 /*
 #define CARGAR 1 //CARGAR NOTAS
 #define GENERAL 2 //PROMEDIO GENERAL
@@ -96,8 +161,7 @@ int menu(){
 
     return 0;
 }
-
-
+//////////////////////////////////////////////////////////////////////////////////////
 void cargar_nota(){
     int opcion;
     int go=1;
@@ -152,7 +216,7 @@ void cargar_nota(){
 
     return;
 }
-
+//////////////////////////////////////////////////////////////////////////////////////
 void consultar_promedio_general(){
     t_comando dat;
 
@@ -165,7 +229,7 @@ void consultar_promedio_general(){
 
     printf("Usted ha ingresado: %d - %d\n", dat.comando, dat.dni);
 }
-
+//////////////////////////////////////////////////////////////////////////////////////
 void consultar_promedio_por_materia(){
     t_comando dat;
 
@@ -178,7 +242,7 @@ void consultar_promedio_por_materia(){
 
     printf("Usted ha ingresado: %d - %d\n", dat.comando, dat.dni);
 }
-
+//////////////////////////////////////////////////////////////////////////////////////
 void salir(){
     t_comando dat;
 
@@ -189,3 +253,23 @@ void salir(){
 
     printf("Bye bye...\n");
 }
+//////////////////////////////////////////////////////////////////////////////////////
+int normalizar(char* cad){
+
+    while(*cad != '\0'){
+        if(ES_LETRA(*cad)){
+            *cad = toupper(*cad);
+            cad++;
+        }else{
+            return 0;
+        }
+        while(((*cad) != ' ') && ES_LETRA(*cad)){
+            *cad = tolower(*cad);
+            cad++;
+        }
+        cad++;
+    }
+
+    return 1;
+}
+//////////////////////////////////////////////////////////////////////////////////////

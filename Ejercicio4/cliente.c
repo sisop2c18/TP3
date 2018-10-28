@@ -9,7 +9,7 @@
 #include <arpa/inet.h>
 #include "funciones.h"
 
-int puerto = 5000;
+int PORT = 5000;
 int Socket_Servidor;
 struct sockaddr_in server;
 
@@ -38,7 +38,8 @@ int main(int argc, char *argv[]){
     }
 
     strcpy(materia,argv[1]);
-
+    normalizar(materia);
+    
     printf("Conectando con el servidor aguarde unos instantes...\n\n");
 
     Socket_Servidor = socket (AF_INET, SOCK_STREAM, 0);
@@ -47,7 +48,7 @@ int main(int argc, char *argv[]){
         exit(1);
     }
 
-    set(argv[2],puerto);
+    set(argv[2],PORT);
 
     if(connect(Socket_Servidor,(struct sockaddr*)&server, sizeof(server))==-1){
         printf("Error en la conexion al servidor.\n");

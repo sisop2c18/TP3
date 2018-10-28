@@ -9,6 +9,7 @@
 typedef struct{
     int id;
     int socket;
+    pthread_t threadId;
 }t_dato;
 
 typedef struct s_nodo{
@@ -32,24 +33,32 @@ typedef struct s_nodoL{
 typedef t_nodo* t_lista;
 typedef t_nodoL* t_listaL;
 typedef int (*t_cmp)(const void *e1,const void *e2);
-///////////////////////////////////////
+typedef int (*t_cmpL)(const void *e1,const void *e2);
+typedef int (*t_cmpG)(const void *e1,const void *e2);
+typedef int (*t_cmpM)(const void *e1,const void *e2);
+///////////////////////////////////////////////////////////////
 void    crearBD(t_listaL *);
 void    cargarDB(t_listaL*);
 int     addDB(t_listaL*,const t_comando*);
+int     addLista(t_listaL*,const t_comando*,t_cmpL cmpL);
 void    mostrarDB(t_listaL*);
+int     cmpL(const void*,const void*);
+int     cmpG(const void*,const void*);
+int     cmpM(const void*,const void*);
+double  devolverGeneral(t_listaL *,const t_comando *, t_cmpG cmpG);
+double  devolverMateria(t_listaL *,const t_comando *, t_cmpM cmpM);
 
+void    crearLista(t_lista *);
+void    vaciarLista(t_lista*);
 int     addUsuario(t_lista*,const t_dato*,t_cmp cmp);
 void    mostrarClientes(t_lista *);
+int     cmp(const void*,const void*);
+int     eliminarUser(t_lista *p, const t_dato *,t_cmp cmp);
 
-void   crearLista(t_lista *);
-void   vaciarLista(t_lista*);
-int    cmp(const void*,const void*);
-int    eliminarDato(t_lista *p, const t_dato *,t_cmp);
+
+
 int    size(t_lista*);
-int    exist(t_lista *,const t_dato *,t_cmp);
-double   buscarHora(t_lista *,const t_dato *,t_cmp);
+int    exist(t_lista *,const t_dato *,t_cmp cmp);
+double   buscarHora(t_lista *,const t_dato *,t_cmp cmp);
 
-
-
-int     cmpL(const void*,const void*);
 void    imprimirListaL(t_listaL *, FILE*);
