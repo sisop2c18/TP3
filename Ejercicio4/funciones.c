@@ -55,7 +55,7 @@ int escribir_socket (void * data, int lon , t_dato *d){
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void* server_run(void *args){
-    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    //pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
     char buffer[256];
     int leido = 0;
     t_listaP promedios;
@@ -63,6 +63,7 @@ void* server_run(void *args){
     t_comando c;
     double prom;
 
+    ordenarListaL(&bd);
     while(leido != -1){
         leido = leer_socket(&c, sizeof(t_comando),dato);
         
@@ -92,6 +93,7 @@ void* server_run(void *args){
 
                     strcpy(buffer,"Se ha cargado en la DB correctamente.");
                     printf("[+] Se ha cargado en la DB correctamente.\n");
+                    ordenarListaL(&bd);
                 }else{
                     // EXISTE MANDAR MSJ ERROR
                     strcpy(buffer,"Ya se encuentra cargado un registro para esa instancia de examen.");
@@ -108,6 +110,7 @@ void* server_run(void *args){
                 // P DEL MUTEX
                 pthread_mutex_lock(&mutex);
                 if(existInDB(&bd,&c,cmpG)){
+
                     prom = devolverGeneral(&bd,&c,cmpG);
                     
                     sprintf(buffer,"El promedio general de %d es %.2f", c.dni, prom);
@@ -130,7 +133,7 @@ void* server_run(void *args){
                 if(existInDB(&bd,&c,cmpG)){
                     crearPromedio(&promedios);
                     t_listaP p;
-                    // ordenar lista bd
+                    
                     devolverMateria(&bd,&promedios,&c,cmpG);
 
                     printf("[?] Se ha consultado el promedio por materia de %d.\n", c.dni);

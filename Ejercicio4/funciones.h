@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <signal.h>
 #include "funciones_Lista.h"
 
 #define PP "Primer Parcial"
@@ -21,6 +22,7 @@
 t_listaL bd;
 t_lista clientes;
 char materia[50];
+pthread_mutex_t mutex;
 
 void* server_run(void *args);
 

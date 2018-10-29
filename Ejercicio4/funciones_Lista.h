@@ -62,6 +62,7 @@ double  devolverGeneral(t_listaL *,const t_comando *, t_cmpG cmpG);
 int     devolverMateria(t_listaL *, t_listaP *,const t_comando *, t_cmpG cmpG);
 void    deleteDB(t_listaL *);
 int     existInDB(t_listaL *,const t_comando *,t_cmpG cmpG);
+void    ordenarListaL(t_listaL *);
 
 void    crearLista(t_lista *);
 void    vaciarLista(t_lista*);

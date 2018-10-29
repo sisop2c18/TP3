@@ -38,7 +38,7 @@ void vaciarLista(t_lista *p){
 }
 //////////////////////////////////////////////////////////////////////////////////
 
-// 1 = ELimino
+// 1 = Elimino
 // 0 = no existe
 
 int eliminarUser(t_lista *p, const t_dato *d,t_cmp cmp){
@@ -209,6 +209,11 @@ double devolverGeneral(t_listaL *p,const t_comando *d, t_cmpG cmpG){
         if(cmpG(&((*p)->dato),d)==0){
             notas += (*p)->dato.nota;
             cantMateria++;
+        }else if(cmpG(&((*p)->dato),d)>0){
+            if(cantMateria != 0){
+                general = notas / cantMateria;
+            }
+            return general;
         }
         p = &(*p)->sig;
     }
@@ -244,6 +249,12 @@ int devolverMateria(t_listaL *p, t_listaP *c, const t_comando *d, t_cmpG cmpG){
             m.nota = (*p)->dato.nota;
             m.cantMaterias = 1;
             insertProm(c,&m,cmpM);
+        }else if(cmpG(&((*p)->dato),d)>0){
+            while(*c){
+                ((*c)->dato.prom) = ((*c)->dato.nota) / ((*c)->dato.cantMaterias);
+                c = &(*c)->sig;
+            }
+            return 1;
         }
         p = &(*p)->sig;
     }
@@ -284,4 +295,54 @@ int cmpM(const void *e1,const void *e2){
     //e1 es la clave de la lista
     //e2 es la clave de la nueva info
     return strcmp(((t_materia*)e1)->materia,((t_materia*)e2)->materia);
+}
+//////////////////////////////////////////////////////////////////////////////////
+void ordenarListaL(t_listaL *p){
+    t_nodoL* inicio;
+    t_nodoL* current;
+    int aux;
+    char auxN[100];
+
+    inicio = *p;
+    current = (*p)->sig;
+
+    while(inicio){
+        while(current){
+            if(((inicio->dato).dni - ((current)->dato).dni) > 0){
+                // INTERCAMBIO comando
+                aux = ((current)->dato).comando;
+                ((current)->dato).comando = (inicio->dato).comando;
+                (inicio->dato).comando = aux;
+
+                // INTERCAMBIO dni
+                aux = ((current)->dato).dni;
+                ((current)->dato).dni = (inicio->dato).dni;
+                (inicio->dato).dni = aux;
+
+                // INTERCAMBIO materia
+                strcpy(auxN, ((current)->dato).materia);
+                strcpy(((current)->dato).materia, (inicio->dato).materia);
+                strcpy((inicio->dato).materia, auxN);
+                
+                // INTERCAMBIO NOMBRE instancia
+                strcpy(auxN, ((current)->dato).instancia);
+                strcpy(((current)->dato).instancia, (inicio->dato).instancia);
+                strcpy((inicio->dato).instancia, auxN);
+
+                // INTERCAMBIO nota
+                aux = ((current)->dato).nota;
+                ((current)->dato).nota = (inicio->dato).nota;
+                (inicio->dato).nota = aux;
+            }else{
+                current = current->sig;
+            }
+        }
+        // Si no se termino la lista, cambio los punteros.
+        if(inicio->sig){
+            inicio = inicio->sig;
+            current = inicio->sig;
+        }else{
+            inicio = inicio->sig;
+        }
+    }
 }

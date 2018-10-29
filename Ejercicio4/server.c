@@ -4,7 +4,6 @@
 #include <unistd.h> 
 #include <stdio.h>
 #include <string.h>
-#include <signal.h>
 #include "funciones.h"
 
 int PORT = 5000;
@@ -25,12 +24,14 @@ void sigInt(int dummy){
     }
     vaciarLista(&clientes);
     deleteDB(&bd);
+    pthread_mutex_destroy(&mutex);
     close(client_sock);
     close(socket_desc);
     socket_desc=0;
 }
 
 int main(int argc , char *argv[]){
+    pthread_mutex_init(&mutex, NULL);
     int id=1;
     t_dato d;
     socklen_t cl=sizeof(struct sockaddr_in);
