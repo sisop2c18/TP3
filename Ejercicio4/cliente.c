@@ -12,6 +12,7 @@
 int PORT = 5000;
 int Socket_Servidor;
 struct sockaddr_in server;
+pthread_t cliente_lee;
 
 void set(const char *y, int z){
 	bzero(&(server.sin_zero), 8);
@@ -21,6 +22,9 @@ void set(const char *y, int z){
 }
 
 int main(int argc, char *argv[]){
+    pthread_mutex_init(&cliente_mutex, NULL);
+    pthread_mutex_init(&cread_mutex, NULL);
+    pthread_mutex_lock(&cread_mutex);
     t_dato sv;
 
     struct hostent *Host;
@@ -62,8 +66,12 @@ int main(int argc, char *argv[]){
     printf("Bienvenido, Profesor de %s\n", materia);
 
     sv.socket = Socket_Servidor;
+    pthread_create( &(cliente_lee), NULL , client_read , (void*) &sv);
     menu(&sv); 
 
+    pthread_mutex_destroy(&cliente_mutex);
+    pthread_mutex_destroy(&cread_mutex);
+    pthread_join(cliente_lee, NULL);
     close(Socket_Servidor);
 
     return 0;

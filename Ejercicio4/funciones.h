@@ -34,10 +34,15 @@ t_listaP promedios;
 char materia[50];
 pthread_mutex_t mutex;
 pthread_mutex_t write_mutex;
+pthread_mutex_t cliente_mutex;
+pthread_mutex_t cread_mutex;
 t_decision decision;
+t_decision cl_dec;
+int blocked; // espera a que se muestre por pantalla el saludo de despedida
 
 void* server_run(void *args);
 void* server_write(void *args);
+void* client_read(void *args);
 
 int menu(t_dato *);
 void cargar_nota(t_dato *);
