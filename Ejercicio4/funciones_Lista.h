@@ -71,9 +71,5 @@ int     cmp(const void*,const void*);
 int     eliminarUser(t_lista *p, const t_dato *,t_cmp cmp);
 
 void    crearPromedio(t_listaP *);
+void    deletePromedio(t_listaP *);
 int     insertProm(t_listaP *, const t_materia *, t_cmpM cmpM);
-void    mostrarPromedios(t_listaP *, int fd);
-
-//int    size(t_lista*);
-//double   buscarHora(t_lista *,const t_dato *,t_cmp cmp);
-//void    imprimirListaL(t_listaL *, FILE*);

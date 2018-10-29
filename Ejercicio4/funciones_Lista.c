@@ -144,7 +144,7 @@ int addDB(t_listaL *p,const t_comando *d){
 //////////////////////////////////////////////////////////////////////////////////
 int addLista(t_listaL *p,const t_comando *d, t_cmpL cmpL){
     t_nodoL *nue;
-    while(*p && (cmpL(&((*p)->dato),d)<0)){
+    while(*p && (cmpL(&((*p)->dato),d) != 0)){
         p= &(*p)->sig;
     }
     if(*p && (cmpL(&((*p)->dato),d)==0)){
@@ -212,6 +212,7 @@ double devolverGeneral(t_listaL *p,const t_comando *d, t_cmpG cmpG){
         }
         p = &(*p)->sig;
     }
+
     if(cantMateria != 0){
         general = notas / cantMateria;
     }
@@ -221,6 +222,15 @@ double devolverGeneral(t_listaL *p,const t_comando *d, t_cmpG cmpG){
 /////////////////////////////////////////
 void crearPromedio(t_listaP *p){
     *p = NULL;
+}
+/////////////////////////////////////////
+void deletePromedio(t_listaP *p){
+    t_nodoM *aux;
+    while(*p){
+        aux = *p;
+        p = &(*p)->sig;
+        free(aux);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 int devolverMateria(t_listaL *p, t_listaP *c, const t_comando *d, t_cmpG cmpG){
@@ -233,7 +243,7 @@ int devolverMateria(t_listaL *p, t_listaP *c, const t_comando *d, t_cmpG cmpG){
             strcpy(m.materia,(*p)->dato.materia);
             m.nota = (*p)->dato.nota;
             m.cantMaterias = 1;
-            insertProm(c,&m,cmpL);
+            insertProm(c,&m,cmpM);
         }
         p = &(*p)->sig;
     }
@@ -264,34 +274,6 @@ int insertProm(t_listaP *p, const t_materia *d, t_cmpM cmpM){
     return 1;
 }
 //////////////////////////////////////////////////////////////////////////////////
-/*
-void mostrarPromedios(t_listaP *p){
-    if(*p == NULL){
-        printf("No se encuentra ese DNI en la BD.\n");
-        return;
-    }
-    while(*p){
-        printf("Materia: %s - Promedio: %.2f\n", ((*p)->dato).materia, ((*p)->dato).prom);
-        p = &(*p)->sig;
-    }
-}
-*/
-
-void mostrarPromedios(t_listaP *p, int fd){
-    char buffer[256];
-    if(*p == NULL){
-        printf("No se encuentra ese DNI en la BD.\n");
-        return;
-    }
-    while(*p){
-        sprintf(buffer,"Materia: %s - Promedio: %.2f\n", ((*p)->dato).materia, ((*p)->dato).prom);
-        escribir_socket(buffer, 256, fd);
-        p = &(*p)->sig;
-    }
-    sprintf(buffer,"FIN");
-    escribir_socket(buffer, 256, fd);
-}
-//////////////////////////////////////////////////////////////////////////////////
 int cmpG(const void *e1,const void *e2){
     //e1 es la clave de la lista
     //e2 es la clave de la nueva info
@@ -303,36 +285,3 @@ int cmpM(const void *e1,const void *e2){
     //e2 es la clave de la nueva info
     return strcmp(((t_materia*)e1)->materia,((t_materia*)e2)->materia);
 }
-/*
-//////////////////////////////////////////////////////////////////////////////////
-// devuelve los segundos
-double buscarHora(t_lista *p,const t_dato *d,t_cmp cmp){
-    t_nodo *nue;
-    while(*p && (cmp(&((*p)->dato),d)<0)){
-        p= &(*p)->sig;
-    }
-    if(*p && (cmp(&((*p)->dato),d)==0)){ 
-        return (((*p)->dato.hora*3600) + ((*p)->dato.min*60) + (*p)->dato.seg);
-    }
-    return 0;
- }
-
-//////////////////////////////////////////////////////////////////////////////////
-void crearListaL(t_listaL *p){
-    *p = NULL;
-}
-//////////////////////////////////////////////////////////////////////////////////
-void imprimirListaL(t_listaL *p, FILE* fp){
-    char msg[60];
-    while(*p){
-        if((*p)->dato.precio != 0){
-            sprintf(msg,"%s %.2f\n", (*p)->dato.patente, (*p)->dato.precio);
-        }else{
-            sprintf(msg,"%s 'Aun en el garage.'\n", (*p)->dato.patente);
-        }
-        fputs(msg,fp);
-        p = &(*p)->sig;
-    }
-    return;
-}
-*/

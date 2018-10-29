@@ -54,23 +54,21 @@ int main(int argc , char *argv[]){
      
     //asigno un nombre local al socket
     if(bind(socket_desc,(struct sockaddr *)&server , sizeof(struct sockaddr_in)) < 0){
-        printf("No se pudo abrir el socket");
+        printf("No se pudo abrir el socket\n");
         exit(1);
     }
 
     if(listen(socket_desc, 3) == -1){
-        printf("Error en listen.");
+        printf("Error en listen.\n");
         exit(1);
     }
 
     crearDB(&bd);
-    printf("Cargando DB...\n\n");
+    printf("Cargando DB...\n");
     cargarDB(&bd);
-
-    mostrarDB(&bd);
-
+    printf("DB lista.\n\n");
     //aca irian las configuraciones del cliente CREO
-
+    printf("Esperando conexiones...\n\n");
     //esta activo esperando a multiples clientes
     while( socket_desc ){
         client_sock = accept(socket_desc, (struct sockaddr *)&client,&cl);
@@ -78,12 +76,11 @@ int main(int argc , char *argv[]){
             printf("Error al aceptar conexion.\n");
             continue;
         }else{
-            printf("Nueva conexion\n");
+            printf("Se ha conectado un cliente.\n");
             d.id=id++;
             d.socket=client_sock;
             pthread_create( &(d.threadId), NULL , server_run , (void*) &d);
             addUsuario(&clientes,&d,cmp);
-            mostrarClientes(&clientes);
         }
     }
 

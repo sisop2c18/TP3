@@ -70,8 +70,6 @@ void* server_run(void *args){
             usleep (100);
             continue;
         }
-        
-        printf("COMANDO = %d\n", c.comando);
 
         switch(c.comando){
             case CARGAR :
@@ -80,13 +78,24 @@ void* server_run(void *args){
                 // P DEL MUTEX creo que tendria 2 mutex uno para general y otro para materia, asi puedo consultar los dos promedios al mismo tiempo
                 pthread_mutex_lock(&mutex);
                 if(addLista(&bd,&c,cmpL)){
-                    // agregar al archivo bd.txt
-                    mostrarDB(&bd);
-                    // sent info OK
+                    FILE * fp;
+                    fp = fopen(BD, "a");
+
+                    if (fp == NULL) {
+                        printf("No se encontro la base de datos.\n");
+                        exit(1);
+                    }
+
+                    fprintf(fp, "%d,%s,%s,%d\n", c.dni, c.materia, c.instancia, c.nota);
+
+                    fclose(fp);
+
                     strcpy(buffer,"Se ha cargado en la DB correctamente.");
+                    printf("Se ha cargado en la DB correctamente.\n");
                 }else{
                     // EXISTE MANDAR MSJ ERROR
                     strcpy(buffer,"Ya se encuentra cargado un registro para esa instancia de examen.");
+                    printf("Ya se encuentra cargado un registro para esa instancia de examen.\n");
                 }
                 escribir_socket(buffer, 256, dato);
                 pthread_mutex_unlock(&mutex);
@@ -96,45 +105,53 @@ void* server_run(void *args){
 
             case GENERAL :
                 // do promedio general
-
+                // P DEL MUTEX
+                pthread_mutex_lock(&mutex);
                 if(existInDB(&bd,&c,cmpG)){
-                     // P DEL MUTEX
-                    pthread_mutex_lock(&mutex);
                     prom = devolverGeneral(&bd,&c,cmpG);
-                    printf("GENERAL = %.2f\n", prom);
-                    pthread_mutex_unlock(&mutex);
-                    // V DEL MUTEX
+                    
                     sprintf(buffer,"El promedio general de %d es %.2f", c.dni, prom);
+                    printf("Se ha consultado el promedio general de %d.\n", c.dni);
                     // MANDAR EL PROMEDIO
                 }else{
                     // NO EXISTE MANDAR MSJ ERROR
                     sprintf(buffer,"No existe persona con dni = %d", c.dni);
+                    printf("No existe persona con dni = %d.\n", c.dni);
                 }
                 escribir_socket(buffer, 256, dato);
+                // V DEL MUTEX
+                pthread_mutex_unlock(&mutex);
                 break;
 
             case MATERIA :
                 // do promedio materia
+                // P DEL MUTEX
+                pthread_mutex_lock(&mutex);
                 if(existInDB(&bd,&c,cmpG)){
                     crearPromedio(&promedios);
+                    t_listaP p;
                     // ordenar lista bd
-
-                    // P DEL MUTEX
-                    pthread_mutex_lock(&mutex);
                     devolverMateria(&bd,&promedios,&c,cmpG);
-                    pthread_mutex_unlock(&mutex);
-                    // V DEL MUTEX
-                    printf("******************************************************************\n");
-                    printf("PROMEDIO POR MATERIA DE %d\n", c.dni);
-                    mostrarPromedios(&promedios, dato.socket);
-                    printf("******************************************************************\n");
-                    // MANDAR EL PROMEDIO
+
+                    printf("Se ha consultado el promedio por materia de %d.\n", c.dni);
+
+                    p = promedios;
+                    while(p){
+                        sprintf(buffer,"Materia: %s - Promedio: %.2f\n", (p->dato).materia, (p->dato).prom);
+                        escribir_socket(buffer, 256, dato);
+                        p = p->sig;
+                    }
+                    deletePromedio(&promedios);
                 }else{
                     // NO EXISTE MANDAR MSJ ERROR
                     sprintf(buffer,"No existe persona con dni = %d", c.dni);
                     escribir_socket(buffer, 256, dato);
+                    printf("No existe persona con dni = %d.\n", c.dni);
                 }
-                //escribir_socket(&promedios, sizeof(t_listaP), dato);
+                sprintf(buffer,"FIN");
+                escribir_socket(buffer, 256, dato);
+                // V DEL MUTEX
+                pthread_mutex_unlock(&mutex);
                 break;
 
             case QUIT :
@@ -142,7 +159,7 @@ void* server_run(void *args){
                 eliminarUser(&clientes,dato,cmp);
                 // pongo esto para que termine el hilo
                 leido=-1;
-                printf("QUIT\n");
+                printf("Se ha desconectado un cliente.\n");
                 sprintf(buffer,"Hasta luego!");
                 escribir_socket(buffer, 256, dato);
                 break;
@@ -279,8 +296,9 @@ void consultar_promedio_general(t_dato *sv){
 //////////////////////////////////////////////////////////////////////////////////////
 void consultar_promedio_por_materia(t_dato *sv){
     t_comando dat;
-    t_listaP prom;
-    crearPromedio(&prom);
+    char buffer[256];
+    //t_listaP prom;
+    //crearPromedio(&prom);
 
     cls();
     printf("Ingresaste a promedio por materia.\n\n");
@@ -299,7 +317,18 @@ void consultar_promedio_por_materia(t_dato *sv){
     printf("PROMEDIO POR MATERIA DE %d\n", dat.dni);
     // HACE BUCLE CHETO PARA LEER HASTA QUE LLEGA FIN
     leer_socket(buffer, 256, sv);
-    mostrarPromedios(&prom);
+    while(strcmp(buffer,"FIN") !=0 ){
+        printf("%s\n", buffer);
+        leer_socket(buffer, 256, sv);
+    }
+        /*
+    }
+    do{
+        leer_socket(buffer, 256, sv);
+        printf("%s\n", buffer);
+    }while(strcmp(buffer,"FIN") !=0 );
+    */
+    //mostrarPromedios(&prom);
     printf("******************************************************************\n");
 }
 //////////////////////////////////////////////////////////////////////////////////////
