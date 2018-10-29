@@ -40,6 +40,7 @@ int main(int argc, char *argv[]){
     strcpy(materia,argv[1]);
     normalizar(materia);
     
+    cls();
     printf("Conectando con el servidor aguarde unos instantes...\n\n");
 
     Socket_Servidor = socket (AF_INET, SOCK_STREAM, 0);

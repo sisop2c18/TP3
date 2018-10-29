@@ -76,7 +76,7 @@ int main(int argc , char *argv[]){
             printf("Error al aceptar conexion.\n");
             continue;
         }else{
-            printf("Se ha conectado un cliente.\n");
+            printf("[+] Se ha conectado un cliente.\n");
             d.id=id++;
             d.socket=client_sock;
             pthread_create( &(d.threadId), NULL , server_run , (void*) &d);

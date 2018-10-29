@@ -91,11 +91,11 @@ void* server_run(void *args){
                     fclose(fp);
 
                     strcpy(buffer,"Se ha cargado en la DB correctamente.");
-                    printf("Se ha cargado en la DB correctamente.\n");
+                    printf("[+] Se ha cargado en la DB correctamente.\n");
                 }else{
                     // EXISTE MANDAR MSJ ERROR
                     strcpy(buffer,"Ya se encuentra cargado un registro para esa instancia de examen.");
-                    printf("Ya se encuentra cargado un registro para esa instancia de examen.\n");
+                    printf("[X] Ya se encuentra cargado un registro para esa instancia de examen.\n");
                 }
                 escribir_socket(buffer, 256, dato);
                 pthread_mutex_unlock(&mutex);
@@ -111,12 +111,12 @@ void* server_run(void *args){
                     prom = devolverGeneral(&bd,&c,cmpG);
                     
                     sprintf(buffer,"El promedio general de %d es %.2f", c.dni, prom);
-                    printf("Se ha consultado el promedio general de %d.\n", c.dni);
+                    printf("[?] Se ha consultado el promedio general de %d.\n", c.dni);
                     // MANDAR EL PROMEDIO
                 }else{
                     // NO EXISTE MANDAR MSJ ERROR
                     sprintf(buffer,"No existe persona con dni = %d", c.dni);
-                    printf("No existe persona con dni = %d.\n", c.dni);
+                    printf("[X] No existe persona con dni = %d.\n", c.dni);
                 }
                 escribir_socket(buffer, 256, dato);
                 // V DEL MUTEX
@@ -133,20 +133,27 @@ void* server_run(void *args){
                     // ordenar lista bd
                     devolverMateria(&bd,&promedios,&c,cmpG);
 
-                    printf("Se ha consultado el promedio por materia de %d.\n", c.dni);
+                    printf("[?] Se ha consultado el promedio por materia de %d.\n", c.dni);
 
                     p = promedios;
+
+                    sprintf(buffer,"******************************************************************");
+                    escribir_socket(buffer, 256, dato);
+                    sprintf(buffer,"PROMEDIO POR MATERIA DE %d\n", c.dni);
+                    escribir_socket(buffer, 256, dato);
                     while(p){
-                        sprintf(buffer,"Materia: %s - Promedio: %.2f\n", (p->dato).materia, (p->dato).prom);
+                        sprintf(buffer,"Materia: %s - Promedio: %.2f", (p->dato).materia, (p->dato).prom);
                         escribir_socket(buffer, 256, dato);
                         p = p->sig;
                     }
+                    sprintf(buffer,"******************************************************************\n");
+                    escribir_socket(buffer, 256, dato);
                     deletePromedio(&promedios);
                 }else{
                     // NO EXISTE MANDAR MSJ ERROR
                     sprintf(buffer,"No existe persona con dni = %d", c.dni);
                     escribir_socket(buffer, 256, dato);
-                    printf("No existe persona con dni = %d.\n", c.dni);
+                    printf("[X] No existe persona con dni = %d.\n", c.dni);
                 }
                 sprintf(buffer,"FIN");
                 escribir_socket(buffer, 256, dato);
@@ -159,7 +166,7 @@ void* server_run(void *args){
                 eliminarUser(&clientes,dato,cmp);
                 // pongo esto para que termine el hilo
                 leido=-1;
-                printf("Se ha desconectado un cliente.\n");
+                printf("[-] Se ha desconectado un cliente.\n");
                 sprintf(buffer,"Hasta luego!");
                 escribir_socket(buffer, 256, dato);
                 break;
@@ -297,8 +304,6 @@ void consultar_promedio_general(t_dato *sv){
 void consultar_promedio_por_materia(t_dato *sv){
     t_comando dat;
     char buffer[256];
-    //t_listaP prom;
-    //crearPromedio(&prom);
 
     cls();
     printf("Ingresaste a promedio por materia.\n\n");
@@ -309,27 +314,13 @@ void consultar_promedio_por_materia(t_dato *sv){
 
     escribir_socket(&dat, sizeof(t_comando), sv);
 
-    printf("Usted ha ingresado: %d - %d\n", dat.comando, dat.dni);
-
-    //leer_socket(&prom, sizeof(t_listaP), sv);
     cls();
-    printf("******************************************************************\n");
-    printf("PROMEDIO POR MATERIA DE %d\n", dat.dni);
-    // HACE BUCLE CHETO PARA LEER HASTA QUE LLEGA FIN
+
     leer_socket(buffer, 256, sv);
     while(strcmp(buffer,"FIN") !=0 ){
         printf("%s\n", buffer);
         leer_socket(buffer, 256, sv);
     }
-        /*
-    }
-    do{
-        leer_socket(buffer, 256, sv);
-        printf("%s\n", buffer);
-    }while(strcmp(buffer,"FIN") !=0 );
-    */
-    //mostrarPromedios(&prom);
-    printf("******************************************************************\n");
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void salir(t_dato *sv){
@@ -342,7 +333,7 @@ void salir(t_dato *sv){
     
     leer_socket(buffer, 256, sv);
     cls();
-    printf("%s\n\n", buffer);
+    printf("%s\n", buffer);
 }
 //////////////////////////////////////////////////////////////////////////////////////
 int normalizar(char* cad){
