@@ -19,12 +19,14 @@ void sigInt(int dummy){
     printf("Cerrando todo...\n");
     t_lista first = clientes;
     while(first){
-        pthread_join(first->dato.threadId, NULL);  
+        pthread_join(first->dato.threadId, NULL);
+        pthread_join(first->dato.threadWrite, NULL);   
         first = first->sig;
     }
     vaciarLista(&clientes);
     deleteDB(&bd);
     pthread_mutex_destroy(&mutex);
+    pthread_mutex_destroy(&write_mutex);
     close(client_sock);
     close(socket_desc);
     socket_desc=0;
@@ -32,6 +34,9 @@ void sigInt(int dummy){
 
 int main(int argc , char *argv[]){
     pthread_mutex_init(&mutex, NULL);
+    pthread_mutex_init(&write_mutex, NULL);
+    pthread_mutex_lock(&write_mutex);
+    
     int id=1;
     t_dato d;
     socklen_t cl=sizeof(struct sockaddr_in);
@@ -81,6 +86,7 @@ int main(int argc , char *argv[]){
             d.id=id++;
             d.socket=client_sock;
             pthread_create( &(d.threadId), NULL , server_run , (void*) &d);
+            pthread_create( &(d.threadWrite), NULL , server_write , (void*) &d);
             addUsuario(&clientes,&d,cmp);
         }
     }

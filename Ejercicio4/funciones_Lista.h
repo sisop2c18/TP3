@@ -10,6 +10,7 @@ typedef struct{
     int id;
     int socket;
     pthread_t threadId;
+    pthread_t threadWrite;
 }t_dato;
 
 typedef struct s_nodo{

@@ -11,6 +11,8 @@
 #define PP "Primer Parcial"
 #define SP "Segundo Parcial"
 #define REC "Recuperatorio"
+#define BAD 0 // error
+#define GOOD 1 // todo ok
 #define CARGAR 1 //CARGAR NOTAS
 #define GENERAL 2 //PROMEDIO GENERAL
 #define MATERIA 3 //PROMEDIO MATERIA
@@ -19,12 +21,23 @@
 #define ES_LETRA(x) ((x > 64 && x < 91) || (x > 96 && x < 123)) ? 1 : 0
 #define ES_NUMERO(x) ((x > 47 && x < 58)) ? 1 : 0
 
+typedef struct{
+    int comando;
+    int decision;
+    int dni;
+    double prom;
+}t_decision;
+
 t_listaL bd;
 t_lista clientes;
+t_listaP promedios;
 char materia[50];
 pthread_mutex_t mutex;
+pthread_mutex_t write_mutex;
+t_decision decision;
 
 void* server_run(void *args);
+void* server_write(void *args);
 
 int menu(t_dato *);
 void cargar_nota(t_dato *);
