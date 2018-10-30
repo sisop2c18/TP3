@@ -34,6 +34,7 @@ t_listaP promedios;
 char materia[50];
 pthread_mutex_t mutex;
 pthread_mutex_t write_mutex;
+pthread_mutex_t quit_mutex;
 pthread_mutex_t cliente_mutex;
 pthread_mutex_t cread_mutex;
 t_decision decision;
@@ -52,3 +53,8 @@ void salir(t_dato *);
 int normalizar(char*);
 int leer_socket (void *, int lon, t_dato*);
 int escribir_socket (void *, int lon , t_dato*);
+
+
+// new try
+t_dato fd;
+void salir2(t_dato *);

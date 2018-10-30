@@ -13,6 +13,7 @@ int PORT = 5000;
 int Socket_Servidor;
 struct sockaddr_in server;
 pthread_t cliente_lee;
+t_dato sv;
 
 void set(const char *y, int z){
 	bzero(&(server.sin_zero), 8);
@@ -21,11 +22,25 @@ void set(const char *y, int z){
 	server.sin_addr.s_addr = inet_addr(y);
 }
 
+void sigInt(int dummy){
+    // cancelar todos los threads
+    printf("\nCerrando todo...\n");
+    salir2(&sv);
+    pthread_mutex_destroy(&cliente_mutex);
+    pthread_mutex_destroy(&cread_mutex);
+    pthread_cancel(cliente_lee);
+    close(Socket_Servidor);
+    exit(1);
+}
+
+
+
 int main(int argc, char *argv[]){
     pthread_mutex_init(&cliente_mutex, NULL);
     pthread_mutex_init(&cread_mutex, NULL);
     pthread_mutex_lock(&cread_mutex);
-    t_dato sv;
+
+    signal(SIGINT, sigInt);
 
     struct hostent *Host;
 

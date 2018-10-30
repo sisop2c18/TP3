@@ -53,15 +53,17 @@ int escribir_socket (void * data, int lon , t_dato *d){
     }
     return sent;
 }
+/*
 //////////////////////////////////////////////////////////////////////////////////////
 void* server_run(void *args){
     char buffer[256];
     int leido = 0;
-    t_dato *dato = args;
+    t_dato *dato = (t_dato*)args;
     t_comando c;
     double prom;
 
     ordenarListaL(&bd);
+    printf("SERVER RUNNING\n");
     while(leido != -1){
         leido = leer_socket(&c, sizeof(t_comando),dato);
         
@@ -69,7 +71,9 @@ void* server_run(void *args){
             usleep (100);
             continue;
         }
+        
         pthread_mutex_lock(&mutex);
+
         switch(c.comando){
             case CARGAR :
                 // do cargar
@@ -151,15 +155,29 @@ void* server_run(void *args){
             case QUIT :
                 decision.comando = QUIT;
                 // sacar de la lista al user
+                pthread_mutex_unlock(&write_mutex);
+                pthread_mutex_lock(&quit_mutex);
                 eliminarUser(&clientes,dato,cmp);
                 // pongo esto para que termine el hilo
                 leido=-1;
                 printf("[-] Se ha desconectado un cliente.\n");
+                /*
+                decision.comando = QUIT;
+                // sacar de la lista al user
+                eliminarUser(&clientes,dato,cmp);
+                printf("DESPUES DE BORRAR!\n");
+                printf("**********************************************************\n");
+                mostrarClientes(&clientes);
+                printf("**********************************************************\n");
+                // pongo esto para que termine el hilo
+                leido=-1;
+                printf("[-] Se ha desconectado un cliente.\n");
                 pthread_mutex_unlock(&write_mutex);
-                break;
+                */
+/*                break;
 
             default:
-                printf("OPCION DESCONOCIDA!\n");
+                printf("OPCION DESCONOCIDA SERVER RUN!\n");
                 exit(1);
             break;
         }
@@ -167,11 +185,13 @@ void* server_run(void *args){
 
     return 0;
 }
+*/
+/*
 //////////////////////////////////////////////////////////////////////////////////////
 void* server_write(void *args){
     char buffer[256];
-    t_dato *dato = args;
-
+    t_dato *dato = (t_dato*)args;
+    printf("ESTPY EN SERVER WRITE Y SOCKET = %d\n", dato->socket);
     decision.comando = 0;
 
     while(decision.comando != -1){
@@ -180,6 +200,7 @@ void* server_write(void *args){
 
         switch(decision.comando){
             case CARGAR :
+                
                 if(decision.decision == GOOD){
                     strcpy(buffer,"Se ha cargado en la DB correctamente.");
                 }else{
@@ -227,11 +248,206 @@ void* server_write(void *args){
             case QUIT :
                 decision.comando=-1;
                 sprintf(buffer,"Hasta luego!");
+                printf("MANDANDOLE AL CLIENTE SALIR Y EL SOCKET ES %d\n", dato->socket);
                 escribir_socket(buffer, 256, dato);
+                pthread_mutex_unlock(&quit_mutex);
                 break;
 
             default:
-                printf("OPCION DESCONOCIDA!\n");
+                printf("OPCION DESCONOCIDA SERVER WRITE!\n");
+                exit(1);
+            break;
+        }
+        pthread_mutex_unlock(&mutex);
+    }
+
+    return 0;
+}*/
+//////////////////////////////////////////////////////////////////////////////////////
+void* server_run(void *args){
+    char buffer[256];
+    int leido = 0;
+    t_dato *dato = (t_dato*)args;
+    t_comando c;
+    double prom;
+
+    ordenarListaL(&bd);
+
+    while(leido != -1){
+        leido = leer_socket(&c, sizeof(t_comando),dato);
+        
+        if(leido == 0){
+            usleep (100);
+            continue;
+        }
+        
+        pthread_mutex_lock(&mutex);
+
+        fd.socket = dato->socket;
+
+        switch(c.comando){
+            case CARGAR :
+                // do cargar
+                decision.comando = CARGAR;
+
+                if(addLista(&bd,&c,cmpL)){
+                    FILE * fp;
+                    fp = fopen(BD, "a");
+
+                    if (fp == NULL) {
+                        printf("No se encontro la base de datos.\n");
+                        exit(1);
+                    }
+
+                    fprintf(fp, "%d,%s,%s,%d\n", c.dni, c.materia, c.instancia, c.nota);
+
+                    fclose(fp);
+
+                    ordenarListaL(&bd);
+
+                    decision.decision = GOOD;
+                    printf("[+] Se ha cargado en la DB correctamente.\n");
+                }else{
+                    // EXISTE MANDAR MSJ ERROR
+                    decision.decision = BAD;
+                    printf("[X] Ya se encuentra cargado un registro para esa instancia de examen.\n");
+                }
+                // V DEL MUTEX
+                pthread_mutex_unlock(&write_mutex);
+                break;
+
+            case GENERAL :
+                // do promedio general
+                decision.comando = GENERAL;
+
+                if(existInDB(&bd,&c,cmpG)){
+
+                    prom = devolverGeneral(&bd,&c,cmpG);
+                    
+                    decision.prom = prom;
+                    decision.dni = c.dni;
+                    decision.decision = GOOD;
+                    printf("[?] Se ha consultado el promedio general de %d.\n", c.dni);
+                }else{
+                    // NO EXISTE MANDAR MSJ ERROR
+                    decision.dni = c.dni;
+                    decision.decision = BAD;
+                    printf("[X] No existe persona con dni = %d.\n", c.dni);
+                }
+                // V DEL MUTEX
+                pthread_mutex_unlock(&write_mutex);
+
+                break;
+
+            case MATERIA :
+                // do promedio materia
+                decision.comando = MATERIA;
+
+                if(existInDB(&bd,&c,cmpG)){
+                    crearPromedio(&promedios);
+                    
+                    devolverMateria(&bd,&promedios,&c,cmpG);
+
+                    printf("[?] Se ha consultado el promedio por materia de %d.\n", c.dni);
+
+                    decision.dni = c.dni;
+                    decision.decision = GOOD;
+
+                }else{
+                    // NO EXISTE MANDAR MSJ ERROR
+                    decision.dni = c.dni;
+                    decision.decision = BAD;
+                    printf("[X] No existe persona con dni = %d.\n", c.dni);
+                }
+                // V DEL MUTEX
+                pthread_mutex_unlock(&write_mutex);
+                break;
+
+            case QUIT :
+                decision.comando = QUIT;
+                // sacar de la lista al user
+                pthread_mutex_unlock(&write_mutex);
+                pthread_mutex_lock(&quit_mutex);
+                eliminarUser(&clientes,dato,cmp);
+                // pongo esto para que termine el hilo
+                leido=-1;
+                printf("[-] Se ha desconectado un cliente.\n");
+                break;
+
+            default:
+                printf("OPCION DESCONOCIDA SERVER RUN!\n");
+                exit(1);
+            break;
+        }
+    }
+
+    return 0;
+}
+//////////////////////////////////////////////////////////////////////////////////////
+void* server_write(void *args){
+    char buffer[256];
+
+    decision.comando = 0;
+
+    while(decision.comando != -1){
+
+        pthread_mutex_lock(&write_mutex);
+
+        switch(decision.comando){
+            case CARGAR :
+                
+                if(decision.decision == GOOD){
+                    strcpy(buffer,"Se ha cargado en la DB correctamente.");
+                }else{
+                    strcpy(buffer,"Ya se encuentra cargado un registro para esa instancia de examen.");
+                }
+                escribir_socket(buffer, 256, &fd);
+                break;
+
+            case GENERAL :
+                if(decision.decision == GOOD){     
+                    sprintf(buffer,"El promedio general de %d es %.2f", decision.dni, decision.prom);
+                }else{
+                    sprintf(buffer,"No existe persona con dni = %d", decision.dni);
+                }
+                escribir_socket(buffer, 256, &fd);
+                break;
+
+            case MATERIA :
+                if(decision.decision == GOOD){
+                    t_listaP p;
+
+                    p = promedios;
+
+                    sprintf(buffer,"******************************************************************");
+                    escribir_socket(buffer, 256, &fd);
+                    sprintf(buffer,"PROMEDIO POR MATERIA DE %d\n", decision.dni);
+                    escribir_socket(buffer, 256, &fd);
+                    while(p){
+                        sprintf(buffer,"Materia: %s - Promedio: %.2f", (p->dato).materia, (p->dato).prom);
+                        escribir_socket(buffer, 256, &fd);
+                        p = p->sig;
+                    }
+                    sprintf(buffer,"******************************************************************\n");
+                    escribir_socket(buffer, 256, &fd);
+                    deletePromedio(&promedios);
+                }else{
+                    // NO EXISTE MANDAR MSJ ERROR
+                    sprintf(buffer,"No existe persona con dni = %d", decision.dni);
+                    escribir_socket(buffer, 256, &fd);
+                }
+                sprintf(buffer,"FIN");
+                escribir_socket(buffer, 256, &fd);
+                break;
+
+            case QUIT :
+                sprintf(buffer,"Hasta luego!");
+                escribir_socket(buffer, 256, &fd);
+                pthread_mutex_unlock(&quit_mutex);
+                break;
+
+            default:
+                printf("OPCION DESCONOCIDA SERVER WRITE!\n");
                 exit(1);
             break;
         }
@@ -387,6 +603,17 @@ void salir(t_dato *sv){
 
     escribir_socket(&dat, sizeof(t_comando), sv);
     cl_dec.comando = QUIT;
+}
+///
+void salir2(t_dato *sv){
+    t_comando dat;
+    char buffer[256];
+
+    dat.comando=QUIT;
+
+    escribir_socket(&dat, sizeof(t_comando), sv);
+    cl_dec.comando = QUIT;
+    pthread_mutex_unlock(&cread_mutex);
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void* client_read(void *args){

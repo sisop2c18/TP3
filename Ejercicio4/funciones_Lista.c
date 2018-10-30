@@ -49,6 +49,7 @@ int eliminarUser(t_lista *p, const t_dato *d,t_cmp cmp){
     if(*p && (cmp(&((*p)->dato),d)==0)){
         aux = *p;
         *p = aux->sig;
+        //close(aux->dato.socket);
         free(aux);
         return 1;
     }
@@ -87,7 +88,7 @@ int existInDB(t_listaL *p,const t_comando *d,t_cmpG cmpG){
         return 1;
     }
     return 0;
- }
+}
 /////////////////////////////////////////
 void crearDB(t_listaL *p){
     *p = NULL;

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <unistd.h>
 #include <string.h>
 #include <time.h>
 ///////////////////////////////////////
@@ -71,6 +72,7 @@ int     addUsuario(t_lista*,const t_dato*,t_cmp cmp);
 void    mostrarClientes(t_lista *);
 int     cmp(const void*,const void*);
 int     eliminarUser(t_lista *p, const t_dato *,t_cmp cmp);
+int     size(t_lista *p);
 
 void    crearPromedio(t_listaP *);
 void    deletePromedio(t_listaP *);

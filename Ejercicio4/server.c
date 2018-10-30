@@ -8,6 +8,8 @@
 
 int PORT = 5000;
 
+int locked = 1;
+pthread_t threadWrite;
 int client_sock;
 int socket_desc;
 struct sockaddr_in server;
@@ -16,17 +18,20 @@ struct sockaddr_in server;
 
 void sigInt(int dummy){
     // cancelar todos los threads
-    printf("Cerrando todo...\n");
+    printf("\nCerrando todo...\n");
+    locked = 0;
     t_lista first = clientes;
     while(first){
-        pthread_join(first->dato.threadId, NULL);
-        pthread_join(first->dato.threadWrite, NULL);   
+        pthread_cancel(first->dato.threadId);
+        //pthread_join(first->dato.threadWrite, NULL);   
         first = first->sig;
     }
+    pthread_cancel(threadWrite); 
     vaciarLista(&clientes);
     deleteDB(&bd);
     pthread_mutex_destroy(&mutex);
     pthread_mutex_destroy(&write_mutex);
+    pthread_mutex_destroy(&quit_mutex);
     close(client_sock);
     close(socket_desc);
     socket_desc=0;
@@ -36,11 +41,17 @@ int main(int argc , char *argv[]){
     pthread_mutex_init(&mutex, NULL);
     pthread_mutex_init(&write_mutex, NULL);
     pthread_mutex_lock(&write_mutex);
-    
+    pthread_mutex_init(&quit_mutex, NULL);
+    pthread_mutex_lock(&quit_mutex);
+
+    t_lista copiaClientes;
     int id=1;
     t_dato d;
     socklen_t cl=sizeof(struct sockaddr_in);
 	struct sockaddr_in client;
+
+    crearLista(&clientes);
+    crearLista(&copiaClientes);
 
     signal(SIGINT, sigInt);
 
@@ -76,17 +87,34 @@ int main(int argc , char *argv[]){
     //aca irian las configuraciones del cliente CREO
     printf("Esperando conexiones...\n\n");
     //esta activo esperando a multiples clientes
+
+    pthread_create( &threadWrite, NULL , server_write , (void*) &d);
+
     while( socket_desc ){
         client_sock = accept(socket_desc, (struct sockaddr *)&client,&cl);
-        if(client_sock < 0){
+        if(client_sock < 0 && locked){
             printf("Error al aceptar conexion.\n");
             continue;
-        }else{
+        }else if(locked){
             printf("[+] Se ha conectado un cliente.\n");
+            /*
             d.id=id++;
             d.socket=client_sock;
             pthread_create( &(d.threadId), NULL , server_run , (void*) &d);
             pthread_create( &(d.threadWrite), NULL , server_write , (void*) &d);
+            addUsuario(&clientes,&d,cmp);
+            mostrarClientes(&clientes);
+            */
+            d.id=id++;
+            d.socket=client_sock;
+            addUsuario(&copiaClientes,&d,cmp);
+
+            if(size(&copiaClientes) > 1){
+                copiaClientes = copiaClientes->sig;
+            }
+
+            pthread_create( &(d.threadId), NULL , server_run , (void*) &(copiaClientes->dato));
+            //pthread_create( &(d.threadWrite), NULL , server_write , (void*) &(copiaClientes->dato));
             addUsuario(&clientes,&d,cmp);
         }
     }
