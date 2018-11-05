@@ -31,28 +31,29 @@ typedef struct{
 t_listaL bd;
 t_lista clientes;
 t_listaP promedios;
+
 char materia[50];
+
 pthread_mutex_t mutex;
 pthread_mutex_t write_mutex;
 pthread_mutex_t quit_mutex;
 pthread_mutex_t cliente_mutex;
 pthread_mutex_t cread_mutex;
+
 t_decision decision;
 t_decision cl_dec;
+
 int blocked; // espera a que se muestre por pantalla el saludo de despedida
 
-void* server_run(void *args);
 void* server_write(void *args);
 void* client_read(void *args);
 
-int menu(t_dato *);
-void cargar_nota(t_dato *);
-void consultar_promedio_general(t_dato *);
-void consultar_promedio_por_materia(t_dato *);
-void salir(t_dato *);
+int menu();
+void cargar_nota();
+void consultar_promedio_general();
+void consultar_promedio_por_materia();
+void salir();
 int normalizar(char*);
-int leer_socket (void *, int lon, t_dato*);
-int escribir_socket (void *, int lon , t_dato*);
 
 
 // new try

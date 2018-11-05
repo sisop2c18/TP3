@@ -26,8 +26,6 @@ int main(int argc, char *argv[]){
     strcpy(materia,argv[1]);
     normalizar(materia);
     
-    // CLIENTE SE CONECTO
-
     printf("Bienvenido, Profesor de %s\n", materia);
 
     menu(); 
@@ -35,7 +33,6 @@ int main(int argc, char *argv[]){
     pthread_mutex_destroy(&cliente_mutex);
     pthread_mutex_destroy(&cread_mutex);
     pthread_join(cliente_lee, NULL);
-    close(Socket_Servidor);
 
     return 0;
 }

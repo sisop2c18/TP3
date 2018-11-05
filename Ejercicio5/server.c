@@ -1,123 +1,131 @@
-#include <stdlib.h> 
-#include <sys/socket.h>
-#include <arpa/inet.h> 
-#include <unistd.h> 
-#include <stdio.h>
+#include "shared.h"
+#include <signal.h>
 #include <string.h>
-#include "funciones.h"
 
-int PORT = 5000;
-
-int locked = 1;
-pthread_t threadWrite;
-int client_sock;
-int socket_desc;
-struct sockaddr_in server;
-//t_listaL bd;
-//t_lista clientes;
-
-void sigInt(int dummy){
-    // cancelar todos los threads
-    printf("\nCerrando todo...\n");
-    locked = 0;
-    t_lista first = clientes;
-    while(first){
-        pthread_cancel(first->dato.threadId);
-        //pthread_join(first->dato.threadWrite, NULL);   
-        first = first->sig;
+void terminateServer(){
+    printf("\nLimpiando memoria compartida\n");
+    if (message != NULL){
+        removeSharedMem(MESSAGE_NAME,message,sizeof(messageData));
     }
-    pthread_cancel(threadWrite); 
-    vaciarLista(&clientes);
-    deleteDB(&bd);
-    pthread_mutex_destroy(&mutex);
-    pthread_mutex_destroy(&write_mutex);
-    pthread_mutex_destroy(&quit_mutex);
-    close(client_sock);
-    close(socket_desc);
-    socket_desc=0;
+    for(int i=0;i<4;i++){
+        if(locks[i]!=NULL){
+            removeSharedMem(locksName[i],locks[i],sizeof(mutex));
+        }
+    }
+    printf("-FIN DEL PROGRAMA-\n");
+    exit(0);
 }
 
-int main(int argc , char *argv[]){
-    pthread_mutex_init(&mutex, NULL);
-    pthread_mutex_init(&write_mutex, NULL);
-    pthread_mutex_lock(&write_mutex);
-    pthread_mutex_init(&quit_mutex, NULL);
-    pthread_mutex_lock(&quit_mutex);
+void sigInt(int dummy){
+    terminateServer();
+}
 
-    t_lista copiaClientes;
-    int id=1;
-    t_dato d;
-    socklen_t cl=sizeof(struct sockaddr_in);
-	struct sockaddr_in client;
-
-    crearLista(&clientes);
-    crearLista(&copiaClientes);
-
-    signal(SIGINT, sigInt);
-
-
-    //creamos socket
-    socket_desc = socket(AF_INET , SOCK_STREAM , 0);
-    if (socket_desc == -1){
-        printf("Error al crear socket");
-        exit(1);
-    }
-    bzero((char*)&server,sizeof(struct sockaddr_in));
-    server.sin_family = AF_INET;
-    //asigna el puerto 5000
-    server.sin_port = htons( PORT );
-    //IP de cualquier maquina
-    server.sin_addr.s_addr = INADDR_ANY;
-     
-    //asigno un nombre local al socket
-    if(bind(socket_desc,(struct sockaddr *)&server , sizeof(struct sockaddr_in)) < 0){
-        printf("No se pudo abrir el socket\n");
-        exit(1);
+void init(){
+    for(int i=0;i<4;i++){
+        locks[i]=NULL;
     }
 
-    if(listen(socket_desc, 3) == -1){
-        printf("Error en listen.\n");
-        exit(1);
+    printf("Iniciando server...\n");
+
+    locks[SERVERLOCK] = mutexCreate(locksName[SERVERLOCK]);
+    if (mutexLock(locks[SERVERLOCK],TIMEOUT_DEFAULT)){
+        printf("No se pudo iniciar el servidor - error al lockear server [SERVERLOCK]\n");
+        terminateServer();
+        return;
     }
 
-    crearDB(&bd);
-    printf("Cargando DB...\n");
-    cargarDB(&bd);
-    printf("DB lista.\n\n");
-    //aca irian las configuraciones del cliente CREO
-    printf("Esperando conexiones...\n\n");
-    //esta activo esperando a multiples clientes
+    locks[CRIPTEDLOCK] = mutexCreate(locksName[CRIPTEDLOCK]);
+    if (mutexLock(locks[CRIPTEDLOCK],TIMEOUT_DEFAULT)){
+        printf("No se pudo iniciar el servidor - error al lockear server [CRIPTEDLOCK]\n");
+        terminateServer();
+        return;
+    }
 
-    pthread_create( &threadWrite, NULL , server_write , (void*) &d);
+    locks[DELETELOCK] = mutexCreate(locksName[DELETELOCK]);
+    if (mutexLock(locks[DELETELOCK],TIMEOUT_DEFAULT)){
+        printf("No se pudo iniciar el servidor - error al lockear server [DELETELOCK]\n");
+        terminateServer();
+        return;
+    }
 
-    while( socket_desc ){
-        client_sock = accept(socket_desc, (struct sockaddr *)&client,&cl);
-        if(client_sock < 0 && locked){
-            printf("Error al aceptar conexion.\n");
-            continue;
-        }else if(locked){
-            printf("[+] Se ha conectado un cliente.\n");
-            /*
-            d.id=id++;
-            d.socket=client_sock;
-            pthread_create( &(d.threadId), NULL , server_run , (void*) &d);
-            pthread_create( &(d.threadWrite), NULL , server_write , (void*) &d);
-            addUsuario(&clientes,&d,cmp);
-            mostrarClientes(&clientes);
-            */
-            d.id=id++;
-            d.socket=client_sock;
-            addUsuario(&copiaClientes,&d,cmp);
 
-            if(size(&copiaClientes) > 1){
-                copiaClientes = copiaClientes->sig;
-            }
+    message = getSharedMem(MESSAGE_NAME,sizeof(messageData),TIMEOUT_DEFAULT);
+    if (message == NULL){
+        printf("No se pudo iniciar el servidor - error al crear memoria de mensaje\n");
 
-            pthread_create( &(d.threadId), NULL , server_run , (void*) &(copiaClientes->dato));
-            //pthread_create( &(d.threadWrite), NULL , server_write , (void*) &(copiaClientes->dato));
-            addUsuario(&clientes,&d,cmp);
+        terminateServer();
+        return;
+    }
+
+    locks[CLIENTLOCK] = mutexCreate(locksName[CLIENTLOCK]);
+
+    for(int i=0;i<4;i++){
+        if(locks[i]==NULL){
+            printf("No se pudo iniciar el servidor - lock no creado %s\n",locksName[i]);
+            terminateServer();
+            return;
         }
     }
 
+    printf("Server iniciado ok\n");
+}
+
+void doAction (char m[],int operation){
+    int offset;
+    if(operation==1){
+        offset=1;
+    }else{
+        offset=-1;
+    }
+    for(int i=0; i< strlen(m);i++){
+        m[i] = m[i] +offset;
+    }
+}
+
+void processMessage(){
+    printf("Ingreso message: (%s) operation: (%d)\n",message->text,message->operation);
+    doAction(message->text,message->operation);
+
+    message->operation=0;
+    mutexUnlock(locks[CRIPTEDLOCK]);
+    if(mutexLock(locks[DELETELOCK],TIMEOUT_DEFAULT)){
+        printf("Cliente no respondio a tiempo.\n");
+        mutexLock(locks[CRIPTEDLOCK],1);
+    }
+    strcpy(message->text,"");
+    printf("Limpiando memoria\n");
+    mutexUnlock(locks[CLIENTLOCK]);
+    printf("Realizado!\n");
+}
+
+void printHelp(int argc, char *const argv[]){
+    if(argc == 2 && (strcmp(argv[1],"help")==0 || strcmp(argv[1],"-h")==0)){
+        printf("Help:\n");
+        printf("./servidor\n");
+        printf("-> No requiere argumentos\n");
+        printf("-> Se mostrara por stdout los logs\n");
+        printf("-> ctrl + c (sigint) para salir\n");
+        exit(0);
+    }
+}
+
+int main(int argc, char *const argv[]){
+    printHelp(argc,argv);
+
+    signal(SIGINT, sigInt);
+    init();
+    printf("Esperando mensajes..");
+    while(1){
+        if(mutexLock(locks[SERVERLOCK],TIMEOUT_DEFAULT)){
+            printf(".");
+            fflush(stdout);
+            continue;
+        }
+        printf("\n");
+        processMessage();
+        printf("\nEsperando mensajes..");
+    }
+
+    terminateServer();
     return 0;
 }

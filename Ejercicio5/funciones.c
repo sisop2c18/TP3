@@ -2,61 +2,6 @@
 #include <stdlib.h>
 #include "funciones.h"
 
-//////////////////////////////////////////////////////////////////////////////////////
-int leer_socket (void *data, int lon, t_dato *d){
-    int read = 0;
-    int aux = 0;
-
-    if ((d->socket == -1) || (data == NULL) || (lon < 1)){
-        return -1;
-    }
-    while (read < lon){
-        aux = recv(d->socket, data + read, lon - read,MSG_WAITALL);
-        if (aux > 0){
-            read = read + aux;
-        }else{
-            if (aux == 0){
-                return read;
-            }
-            if (aux == -1){
-                switch (errno) {
-                    case EINTR:
-                    case EAGAIN:
-                        usleep (100);
-                        break;
-                    default:
-                        return -1;
-                }
-            }
-        }
-    }
-    return read;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////
-int escribir_socket (void * data, int lon , t_dato *d){
-    int sent = 0;
-    int aux = 0;
-
-    if ((d->socket == -1) || (data == NULL) || (lon < 1)){
-        return -1;
-    }
-    while (sent < lon){
-        aux = send(d->socket, data + sent, lon - sent,0);
-        if (aux > 0){
-            sent = sent + aux;
-        }else{
-            if(aux == 0){
-                return sent;
-            }else{
-                return -1;
-            }
-        }
-    }
-    return sent;
-}
-
-
 void* server_write(void *args){
     char buffer[256];
 
@@ -160,11 +105,11 @@ int menu(){
                     pthread_mutex_unlock(&cread_mutex);
                     break;
 
-            case 3: consultar_promedio_por_materia(sv);
+            case 3: consultar_promedio_por_materia();
                     pthread_mutex_unlock(&cread_mutex);
                     break;
 
-            case 4: salir(sv);
+            case 4: salir();
                     pthread_mutex_unlock(&cread_mutex);
                     go=0;
                     while(blocked){
@@ -250,7 +195,8 @@ void consultar_promedio_general(){
     printf("Ingrese documento del alumno.\n");
     scanf("%d",&dat.dni);
 
-    cl_dec.comando = GENERAL;
+    message.operation = GENERAL;
+    message.comando = dat;
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void consultar_promedio_por_materia(){
@@ -264,7 +210,8 @@ void consultar_promedio_por_materia(){
     printf("Ingrese documento del alumno.\n");
     scanf("%d",&dat.dni);
 
-    cl_dec.comando = MATERIA;
+    message.operation = MATERIA;
+    message.comando = dat;
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void salir(){
@@ -279,8 +226,9 @@ void salir2(){
     t_comando dat;
     char buffer[256];
 
-    dat.comando=QUIT;
-
+    dat.comando= QUIT;
+    message.operation = QUIT;
+    message.comando = dat;
     cl_dec.comando = QUIT;
     pthread_mutex_unlock(&cread_mutex);
 }
