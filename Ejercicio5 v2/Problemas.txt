@@ -1,0 +1,28 @@
+Problemas:
+
+-Promedio General
+	Funciona mal, puse el promedio general con profesor de Calculo, con dni 22222222, y el resultado fue:
+
+	Materia: Calculo - Promedio: 222
+
+	******************************************************************
+
+	FIN
+	FIN
+	FIN
+	FIN
+
+	y murio ahi, no volvio a el menu...
+
+-Menu
+	Si ingreso una opcion invalida printea:
+
+	Opcion incorrecta, re ingrese.
+
+	y murio ahi, no volvio a el menu...
+
+	Para arreglarlo poner:
+
+		pthread_mutex_unlock(&cliente_mutex);
+
+		en la opcion por default del menu, hacerlo en el ejercicio 4 tambien
