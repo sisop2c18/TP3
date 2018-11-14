@@ -152,20 +152,25 @@ void* server_write(void *args){
 
                     sprintf(mensaje->buffer,"******************************************************************");
                     sem_post(mutexClient);
+                    sem_wait(mutexEspera);
                     sprintf(mensaje->buffer,"PROMEDIO POR MATERIA DE %d\n", decision.dni);
                     sem_post(mutexClient);
+                    sem_wait(mutexEspera);
                     while(p){
                         sprintf(mensaje->buffer,"Materia: %s - Promedio: %.2f", (p->dato).materia, (p->dato).prom);
                         sem_post(mutexClient);
+                        sem_wait(mutexEspera);
                         p = p->sig;
                     }
                     sprintf(mensaje->buffer,"******************************************************************\n");
                     sem_post(mutexClient);
+                    sem_wait(mutexEspera);
                     deletePromedio(&promedios);
                 }else{
                     // NO EXISTE MANDAR MSJ ERROR
                     sprintf(mensaje->buffer,"No existe persona con dni = %d", decision.dni);
                     sem_post(mutexClient);
+                    sem_wait(mutexEspera);
                 }
                 sprintf(mensaje->buffer,"FIN");
                 sem_post(mutexClient);
@@ -300,10 +305,10 @@ void consultar_promedio_general(){
 
     cls();
     printf("Ingresaste a promedio general.\n\n");
-    mensaje->comando=GENERAL;
 
     printf("Ingrese documento del alumno.\n");
     scanf("%d",&(mensaje->dni));
+    mensaje->comando=GENERAL;
 
     sem_post(mutexServer);
     cl_dec.comando = GENERAL;
@@ -313,10 +318,10 @@ void consultar_promedio_por_materia(){
 
     cls();
     printf("Ingresaste a promedio por materia.\n\n");
-    mensaje->comando=MATERIA;
-
+    
     printf("Ingrese documento del alumno.\n");
     scanf("%d",&(mensaje->dni));
+    mensaje->comando=MATERIA;
 
     sem_post(mutexServer);
     cl_dec.comando = MATERIA;
@@ -340,8 +345,6 @@ void salir2(){
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void* client_read(void *args){
-    char buffer[256];
-    t_dato *sv = args;
 
     cl_dec.comando = 0;
 
@@ -366,8 +369,9 @@ void* client_read(void *args){
                 cls();
 
                 sem_wait(mutexClient);
-                while(strcmp(buffer,"FIN") != 0){
+                while(strcmp(mensaje->buffer,"FIN") != 0){
                     printf("%s\n", mensaje->buffer);
+                    sem_post(mutexEspera);
                     sem_wait(mutexClient);
                 }
                 break;

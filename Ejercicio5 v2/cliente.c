@@ -23,6 +23,7 @@ void sigInt(int dummy){
     sem_close(mutexServer);
     sem_close(mutexClient);
     sem_close(mutexConexion);
+    sem_close(mutexEspera);
 
     close(fd);
     munmap(mensaje, sizeof(t_comando));
@@ -34,6 +35,7 @@ int main(int argc, char *argv[]){
     mutexServer = sem_open(SMUTEX, 0);
     mutexClient = sem_open(CMUTEX, 0);
     mutexConexion = sem_open(EMUTEX, 0);
+    mutexEspera = sem_open(WMUTEX, 0);
 
     fd = shm_open(SHMFILE, O_CREAT | O_RDWR, 0666);
 
@@ -64,9 +66,7 @@ int main(int argc, char *argv[]){
 
     printf("Bienvenido, Profesor de %s\n", materia);
 
-    pthread_create(&(cliente_lee), NULL, client_read, NULL);
-
-    // MANDAR QUE SE CONECTO AL SERVER 
+    pthread_create(&(cliente_lee), NULL, client_read, NULL); 
 
     menu(); 
 

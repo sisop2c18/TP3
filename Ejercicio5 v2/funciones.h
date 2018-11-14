@@ -15,6 +15,7 @@
 #define SMUTEX "/mutexServer"
 #define CMUTEX "/mutexClient"
 #define EMUTEX "/mutexConexion"
+#define WMUTEX "/mutexWait"
 #define SHMFILE "shm_server"
 #define PP "Primer Parcial"
 #define SP "Segundo Parcial"
@@ -53,6 +54,7 @@ int blocked; // espera a que se muestre por pantalla el saludo de despedida
 sem_t * mutexServer;
 sem_t * mutexConexion;
 sem_t * mutexClient;
+sem_t * mutexEspera;
 
 void* server_run(void *args);
 void* escucha_conexiones(void *args);
