@@ -1,11 +1,37 @@
-#include<stdio.h>
-#include<sys/types.h>
-#include<unistd.h>
-#include<sys/wait.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <semaphore.h>
+#include <sys/shm.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
-int main(int argc, char *argv[])
-{
+#define MUTEX "/mutex"
+
+/*
+2 procesos hijos
+3 procesos nietos
+5 procesos bisnietos
+2 procesos zombies, en cualquier nivel
+3 procesos demonios, que deben quedar activos
+*/
+
+sem_t * mutex;
+
+void mostrar(int pid, int gen, int ppid, char* parentesco){
+	sem_wait(mutex);
+	printf("Soy el proceso con PID %d y pertenezco a la generación Nº %d.\nPid: %d Pid padre: %d Parentesco: %s\n\n", pid, gen, pid, ppid, parentesco);
+	sem_post(mutex);
+}
+
+int main(int argc, char *argv[]){
+
+	char fin[32];
+
+	mutex = sem_open(MUTEX, O_CREAT | O_EXCL, 0666, 1);
+
 	pid_t pidh1, pidh2,
 	      pidn1, pidn2, pidn3,
 	      pidb1, pidb2, pidb3, pidb4, pidb5;
@@ -17,20 +43,14 @@ int main(int argc, char *argv[])
 	if ( (pidh1=fork()) == 0 ){
 		if( (pidn1=fork()) == 0){
 			if( (pidb1=fork()) == 0){
-				printf("Soy el proceso con PID %d y pertenezco a la generación Nº 4.\nPid: %d Pid padre: %d Parentesco: BISNIETO\n\n", 
-				getpid(), getpid(), getppid() );
+				mostrar(getpid(), 4, getppid(), "BISNIETO");	
 			}
 			else{
 				if( (pidb2=fork()) == 0){
-				printf("Soy el proceso con PID %d y pertenezco a la generación Nº 4.\nPid: %d Pid padre: %d Parentesco: BISNIETO\n\n", 
-				getpid(), getpid(), getppid() );
+					mostrar(getpid(), 4, getppid(), "BISNIETO");
 				}
 				else{
-					waitpid(pidb1, &statusb1, 0);
-					waitpid(pidb2, &statusb2, 0);
-					printf("Soy el proceso con PID %d y pertenezco a la generación Nº 3.\nPid: %d Pid padre: %d Parentesco: NIETO\n\n", 
-					getpid(), getpid(), getppid() );
-				
+					mostrar(getpid(), 3, getppid(), "NIETO");				
 				}			
 			}
 						
@@ -38,55 +58,43 @@ int main(int argc, char *argv[])
 		else{
 			if( (pidn2=fork()) == 0){
 				if( (pidb3=fork()) == 0){
-					printf("Soy el proceso con PID %d y pertenezco a la generación Nº 4.\nPid: %d Pid padre: %d Parentesco: BISNIETO\n\n", 
-				getpid(), getpid(), getppid() );				
+					mostrar(getpid(), 4, getppid(), "BISNIETO");				
 				}
 				else{
 					if( (pidb4=fork()) == 0){
-						printf("Soy el proceso con PID %d y pertenezco a la generación Nº 4.\nPid: %d Pid padre: %d Parentesco: BISNIETO\n\n", 
-						getpid(), getpid(), getppid() );				
+						mostrar(getpid(), 4, getppid(), "BISNIETO");				
 					}
 					else{
-						waitpid(pidb3, &statusb3, 0);
-						waitpid(pidb4, &statusb4, 0);
-						printf("Soy el proceso con PID %d y pertenezco a la generación Nº 3.\nPid: %d Pid padre: %d Parentesco: NIETO\n\n", 
-					getpid(), getpid(), getppid() );	
+						mostrar(getpid(), 3, getppid(), "NIETO");	
 					}
 				}	
 			}
 			else{
-				waitpid(pidn1, &statusn1, 0);
-				waitpid(pidn2, &statusn2, 0);
-				printf("Soy el proceso con PID %d y pertenezco a la generación Nº 2.\nPid: %d Pid padre: %d Parentesco: HIJO\n\n", 
-				getpid(), getpid(), getppid() );
+				mostrar(getpid(), 2, getppid(), "HIJO");
 			}
 		}
     	}
 	else{
 		if ( (pidh2=fork()) == 0 ){
-            		if( (pidn3=fork()) == 0){
+            if( (pidn3=fork()) == 0){
 				if( (pidb5=fork()) == 0){
-					printf("Soy el proceso con PID %d y pertenezco a la generación Nº 4.\nPid: %d Pid padre: %d Parentesco: BISNIETO\n\n", 
-					getpid(), getpid(), getppid() );								
+					mostrar(getpid(), 4, getppid(), "BISNIETO");								
 				}
 				else{
-					waitpid(pidb5, &statusb5, 0);
-					printf("Soy el proceso con PID %d y pertenezco a la generación Nº 3.\nPid: %d Pid padre: %d Parentesco: NIETO\n\n", 
-					getpid(), getpid(), getppid() );
+					mostrar(getpid(), 3, getppid(), "NIETO");
 				}
 			}
 			else{
-				waitpid(pidn3, &statusn3, 0);
-				printf("Soy el proceso con PID %d y pertenezco a la generación Nº 2.\nPid: %d Pid padre: %d Parentesco: HIJO\n\n", 
-				getpid(), getpid(), getppid() );
+				mostrar(getpid(), 2, getppid(), "HIJO");
 			}
-        	}
-        	else{
-            		waitpid(pidh1, &statush1, 0);
-            		waitpid(pidh2, &statush2, 0);
-           		printf("Soy el proceso con PID %d y pertenezco a la generación Nº 1.\nPid: %d Pid padre: %d Parentesco: PADRE\n\n", 
-			getpid(), getpid(), getppid() );
-        	}
-    	}
+        }else{
+            mostrar(getpid(), 1, getppid(), "PADRE");
+        }
+    }
+
+	fgets(fin,32,stdin);
+
+    sem_close(mutex);
+	sem_unlink(MUTEX);
 	return 0;
 }
