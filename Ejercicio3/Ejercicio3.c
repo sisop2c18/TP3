@@ -43,7 +43,7 @@ void escribir(pid_t pid){
 	//int w = open("./fifo1", O_WRONLY);
 	w = open("./fifo1", O_WRONLY);
 
-	printf("Para finalizar ingrese: eexit12\nPID QUE LEE: %d\n", pid);
+	printf("PID QUE LEE: %d\n", pid);
 	printf("Ingrese informacion:\n");
 
    	do{
