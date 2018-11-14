@@ -6,6 +6,22 @@
 #include <string.h>
 #include "funciones.h"
 
+/*#################################################
+#             Sistemas Operativos                 #
+#       Trabajo Práctico 3 - Ejericio 3           #
+#       Nombre del Script: Ejercicio3.c           #
+#                                                 #
+#       Integrantes:                              #
+#         Miller, Lucas            39353278       #
+#         Ramos, Micaela           39266928       #
+#         Sapaya, Nicolás Martín   38319489       #
+#         Schafer, Federico        39336856       #
+#         Secchi, Lucas            39267345       #
+#                                                 #
+#       Instancia de Entrega: Entrega             #
+#                                                 #
+###################################################*/
+
 int PORT = 5000;
 
 int locked = 1;
