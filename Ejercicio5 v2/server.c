@@ -4,6 +4,22 @@
 #include <string.h>
 #include "funciones.h"
 
+/*#################################################
+#             Sistemas Operativos                 #
+#       Trabajo Práctico 3 - Ejercicio 5          #
+#       Nombre del Script: server.c           	  #
+#                                                 #
+#       Integrantes:                              #
+#         Miller, Lucas            39353278       #
+#         Ramos, Micaela           39266928       #
+#         Sapaya, Nicolás Martín   38319489       #
+#         Schafer, Federico        39336856       #
+#         Secchi, Lucas            39267345       #
+#                                                 #
+#       Instancia de Entrega: Entrega             #
+#                                                 #
+###################################################*/
+
 int locked = 1;
 int leave = 1;
 int fd;
@@ -21,28 +37,21 @@ void sigInt(int dummy){
         //pthread_join(first->dato.threadWrite, NULL);   
         first = first->sig;
     }
-    printf("TERMINE THREADS\n");
     pthread_cancel(threadWrite);  
-    printf("TERMINE THREAD WRITE\n");
     vaciarLista(&clientes);
-    printf("TERMINE VACIAR CLIENTES\n");
     deleteDB(&bd);
-    printf("DESTROY BD\n");
     pthread_mutex_destroy(&mutex);
     pthread_mutex_destroy(&write_mutex);
     pthread_mutex_destroy(&quit_mutex);
-    printf("DESTROY MUTEX\n");
     sem_close(mutexServer);
     sem_unlink(SMUTEX);
     sem_close(mutexClient);
     sem_unlink(CMUTEX);
     sem_close(mutexEspera);
     sem_unlink(WMUTEX);
-    printf("DESTROY MUTEX SV CLIENTE\n");
     close(fd);
     munmap(mensaje, sizeof(t_comando));
     shm_unlink(SHMFILE);
-    printf("BYE BYE\n");
 }
 
 int main(int argc , char *argv[]){
