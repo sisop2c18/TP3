@@ -26,7 +26,8 @@ void sigInt(int dummy){
         //pthread_join(first->dato.threadWrite, NULL);   
         first = first->sig;
     }
-    pthread_cancel(threadWrite); 
+    pthread_cancel(threadWrite);
+    quitAll(&clientes); 
     vaciarLista(&clientes);
     deleteDB(&bd);
     pthread_mutex_destroy(&mutex);
@@ -75,7 +76,7 @@ int main(int argc , char *argv[]){
         exit(1);
     }
 
-    if(listen(socket_desc, 3) == -1){
+    if(listen(socket_desc, 7) == -1){
         printf("Error en listen.\n");
         exit(1);
     }

@@ -54,7 +54,7 @@ int normalizar(char*);
 int leer_socket (void *, int lon, t_dato*);
 int escribir_socket (void *, int lon , t_dato*);
 
-
+void quitAll(t_lista *);
 // new try
 t_dato fd;
 void salir2(t_dato *);

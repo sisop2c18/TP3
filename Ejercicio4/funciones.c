@@ -479,30 +479,30 @@ int menu(t_dato *sv){
         scanf( "%d", &opcion );
 
         switch(opcion){
-            case 1: cargar_nota(sv);
-                    pthread_mutex_unlock(&cread_mutex);
-                    break;
+        case 1: cargar_nota(sv);
+                pthread_mutex_unlock(&cread_mutex);
+                break;
 
-            case 2: consultar_promedio_general(sv);
-                    pthread_mutex_unlock(&cread_mutex);
-                    break;
+        case 2: consultar_promedio_general(sv);
+                pthread_mutex_unlock(&cread_mutex);
+                break;
 
-            case 3: consultar_promedio_por_materia(sv);
-                    pthread_mutex_unlock(&cread_mutex);
-                    break;
+        case 3: consultar_promedio_por_materia(sv);
+                pthread_mutex_unlock(&cread_mutex);
+                break;
 
-            case 4: salir(sv);
-                    pthread_mutex_unlock(&cread_mutex);
-                    go=0;
-                    while(blocked){
-                    }
-                    break;
+        case 4: salir(sv);
+                pthread_mutex_unlock(&cread_mutex);
+                go=0;
+                while(blocked){
+                }
+                break;
 
-            default:cls();
-                    printf("Opcion incorrecta, re ingrese.\n");
-                    pthread_mutex_unlock(&cliente_mutex);
-                    break;
-         }
+        default:cls();
+                printf("Opcion incorrecta, re ingrese.\n");
+                pthread_mutex_unlock(&cliente_mutex);
+                break;
+        } 
     }while(go);
 
     return 0;
@@ -688,3 +688,13 @@ int normalizar(char* cad){
     return 1;
 }
 //////////////////////////////////////////////////////////////////////////////////////
+void quitAll(t_lista *p){
+    char buffer[256];
+    pthread_mutex_lock(&mutex);
+    sprintf(buffer,"El servidor se ha cerrado.");
+    while(*p){
+        escribir_socket(buffer, 256, &((*p)->dato));
+        p = &(*p)->sig;
+    }
+    pthread_mutex_unlock(&mutex);
+}
