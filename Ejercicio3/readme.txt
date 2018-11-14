@@ -1,0 +1,1 @@
+El parametro de valor por hora, se ha tomado como valor por minuto.
