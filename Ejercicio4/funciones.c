@@ -500,6 +500,7 @@ int menu(t_dato *sv){
 
             default:cls();
                     printf("Opcion incorrecta, re ingrese.\n");
+                    pthread_mutex_unlock(&cliente_mutex);
                     break;
          }
     }while(go);
