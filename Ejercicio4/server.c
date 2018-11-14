@@ -8,8 +8,8 @@
 
 /*#################################################
 #             Sistemas Operativos                 #
-#       Trabajo Práctico 3 - Ejericio 3           #
-#       Nombre del Script: Ejercicio3.c           #
+#       Trabajo Práctico 3 - Ejericio 4           #
+#       Nombre del Script: server.c               #
 #                                                 #
 #       Integrantes:                              #
 #         Miller, Lucas            39353278       #
