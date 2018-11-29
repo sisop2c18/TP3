@@ -58,3 +58,4 @@ void quitAll(t_lista *);
 // new try
 t_dato fd;
 void salir2(t_dato *);
+void clearStdin();

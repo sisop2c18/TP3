@@ -457,6 +457,11 @@ void* server_write(void *args){
     return 0;
 }
 //////////////////////////////////////////////////////////////////////////////////////
+void clearStdin(){
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) { }
+}
+//////////////////////////////////////////////////////////////////////////////////////
 /*
 #define CARGAR 1 //CARGAR NOTAS
 #define GENERAL 2 //PROMEDIO GENERAL
@@ -466,9 +471,12 @@ void* server_write(void *args){
 int menu(t_dato *sv){
     int opcion;
     int go=1;
+    int enter;
+    char term;
     blocked = 1;
 
     do{
+        enter = 1;
         pthread_mutex_lock(&cliente_mutex);
         printf( "\n   1. Cargar nota. " );
         printf( "\n   2. Consultar promedio de notas general. ");
@@ -476,7 +484,17 @@ int menu(t_dato *sv){
         printf( "\n   4. Salir." );
         printf( "\n\n   Introduzca opcion (1-4): ");
 
-        scanf( "%d", &opcion );
+        while(enter == 1){
+            while(scanf("%d%c", &opcion, &term) != 2 || term != '\n'){
+                clearStdin();
+                printf("Re ingrese opcion.\n"); 
+            }
+            if(opcion < 1 || opcion > 4){
+                printf("Re ingrese opcion.\n");
+            }else{
+                enter = 0;
+            }
+        }
 
         switch(opcion){
         case 1: cargar_nota(sv);
@@ -513,6 +531,8 @@ void cargar_nota(t_dato *sv){
     int go = 1;
     char buffer[256];
     t_comando dat;
+    int enter=1;
+    char term;
 
     cls();
     printf("Ingresaste a cargar notas.\n\n");
@@ -520,12 +540,34 @@ void cargar_nota(t_dato *sv){
     strcpy(dat.materia,materia);
 
     printf("Ingrese documento del alumno.\n");
-    scanf("%d",&dat.dni);
+    while(enter == 1){
+        while(scanf("%d%c", &dat.dni, &term) != 2 || term != '\n'){
+            clearStdin();
+            printf("Re ingrese documento del alumno.\n"); 
+        }
+        if(dat.dni < 1 || dat.dni > 99999999){
+            printf("Re ingrese documento del alumno.\n");
+        }else{
+            enter = 0;
+        }
+    }
 
-    do{
-        printf("Ingrese nota.\n");
-        scanf("%d",&dat.nota);
-    }while(dat.nota < 1 || dat.nota > 10);
+    enter=1;
+
+    printf("Ingrese nota.\n");
+    while(enter == 1){
+        while(scanf("%d%c", &dat.nota, &term) != 2 || term != '\n'){
+            clearStdin();
+            printf("Re ingrese nota.\n");
+        }
+        if(dat.nota < 1 || dat.nota > 10){
+            printf("Re ingrese nota.\n");
+        }else{
+            enter = 0;
+        }
+    }
+    
+    enter=1;
 
     printf("Seleccione Instancia.\n");
 
@@ -535,7 +577,17 @@ void cargar_nota(t_dato *sv){
         printf( "\n   3. Recuperatorio. ");
         printf( "\n\n   Introduzca opcion (1-3): ");
 
-        scanf( "%d", &opcion );
+        while(enter == 1){
+            while(scanf("%d%c", &opcion, &term) != 2 || term != '\n'){
+                clearStdin();
+                printf("Re ingrese opcion.\n"); 
+            }
+            if(opcion < 1 || opcion > 3){
+                printf("Re ingrese opcion.\n");
+            }else{
+                enter = 0;
+            }
+        }
 
         switch(opcion){
             case 1: // cargo a la struct primer parcial
@@ -569,13 +621,25 @@ void cargar_nota(t_dato *sv){
 void consultar_promedio_general(t_dato *sv){
     t_comando dat;
     char buffer[256];
+    int enter=1;
+    char term;
 
     cls();
     printf("Ingresaste a promedio general.\n\n");
     dat.comando=GENERAL;
 
     printf("Ingrese documento del alumno.\n");
-    scanf("%d",&dat.dni);
+    while(enter == 1){
+        while(scanf("%d%c", &dat.dni, &term) != 2 || term != '\n'){
+            clearStdin();
+            printf("Re ingrese documento del alumno.\n"); 
+        }
+        if(dat.dni < 1 || dat.dni > 99999999){
+            printf("Re ingrese documento del alumno.\n");
+        }else{
+            enter = 0;
+        }
+    }
 
     escribir_socket(&dat, sizeof(t_comando), sv);
     cl_dec.comando = GENERAL;
@@ -584,13 +648,25 @@ void consultar_promedio_general(t_dato *sv){
 void consultar_promedio_por_materia(t_dato *sv){
     t_comando dat;
     char buffer[256];
+    int enter=1;
+    char term;
 
     cls();
     printf("Ingresaste a promedio por materia.\n\n");
     dat.comando=MATERIA;
 
     printf("Ingrese documento del alumno.\n");
-    scanf("%d",&dat.dni);
+    while(enter == 1){
+        while(scanf("%d%c", &dat.dni, &term) != 2 || term != '\n'){
+            clearStdin();
+            printf("Re ingrese documento del alumno.\n"); 
+        }
+        if(dat.dni < 1 || dat.dni > 99999999){
+            printf("Re ingrese documento del alumno.\n");
+        }else{
+            enter = 0;
+        }
+    }
 
     escribir_socket(&dat, sizeof(t_comando), sv);
     cl_dec.comando = MATERIA;
