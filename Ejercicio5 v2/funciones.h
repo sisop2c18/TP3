@@ -72,3 +72,4 @@ int escribir_socket (void *, int lon , t_dato*);
 
 // new try
 void salir2();
+void clearStdin();

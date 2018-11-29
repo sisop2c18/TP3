@@ -193,6 +193,11 @@ void* server_write(void *args){
     return 0;
 }
 //////////////////////////////////////////////////////////////////////////////////////
+void clearStdin(){
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) { }
+}
+//////////////////////////////////////////////////////////////////////////////////////
 /*
 #define CARGAR 1 //CARGAR NOTAS
 #define GENERAL 2 //PROMEDIO GENERAL
@@ -202,9 +207,12 @@ void* server_write(void *args){
 int menu(){
     int opcion;
     int go=1;
+    int enter;
+    char term;
     blocked = 1;
 
     do{
+        enter = 1;
         pthread_mutex_lock(&cliente_mutex);
         printf( "\n   1. Cargar nota. " );
         printf( "\n   2. Consultar promedio de notas general. ");
@@ -212,7 +220,17 @@ int menu(){
         printf( "\n   4. Salir." );
         printf( "\n\n   Introduzca opcion (1-4): ");
 
-        scanf( "%d", &opcion );
+        while(enter == 1){
+            while(scanf("%d%c", &opcion, &term) != 2 || term != '\n'){
+                clearStdin();
+                printf("Re ingrese opcion.\n"); 
+            }
+            if(opcion < 1 || opcion > 4){
+                printf("Re ingrese opcion.\n");
+            }else{
+                enter = 0;
+            }
+        }
 
         switch(opcion){
             case 1: cargar_nota();
@@ -248,19 +266,43 @@ void cargar_nota(){
     int opcion;
     int go = 1;
     char buffer[256];
+    int enter=1;
+    char term;
 
     cls();
     printf("Ingresaste a cargar notas.\n\n");
     mensaje->comando=CARGAR;
-    strcpy(mensaje->materia,materia);
+    strcpy(mensaje->materia,materia);    
 
     printf("Ingrese documento del alumno.\n");
-    scanf("%d",&(mensaje->dni));
+    while(enter == 1){
+        while(scanf("%d%c", &(mensaje->dni), &term) != 2 || term != '\n'){
+            clearStdin();
+            printf("Re ingrese documento del alumno.\n"); 
+        }
+        if(mensaje->dni < 1 || mensaje->dni > 99999999){
+            printf("Re ingrese documento del alumno.\n");
+        }else{
+            enter = 0;
+        }
+    }
 
-    do{
-        printf("Ingrese nota.\n");
-        scanf("%d",&(mensaje->nota));
-    }while(mensaje->nota < 1 || mensaje->nota > 10);
+    enter=1;
+
+    printf("Ingrese nota.\n");
+    while(enter == 1){
+        while(scanf("%d%c", &(mensaje->nota), &term) != 2 || term != '\n'){
+            clearStdin();
+            printf("Re ingrese nota.\n");
+        }
+        if(mensaje->nota < 1 || mensaje->nota > 10){
+            printf("Re ingrese nota.\n");
+        }else{
+            enter = 0;
+        }
+    }
+    
+    enter=1;
 
     printf("Seleccione Instancia.\n");
 
@@ -270,7 +312,17 @@ void cargar_nota(){
         printf( "\n   3. Recuperatorio. ");
         printf( "\n\n   Introduzca opcion (1-3): ");
 
-        scanf( "%d", &opcion );
+        while(enter == 1){
+            while(scanf("%d%c", &opcion, &term) != 2 || term != '\n'){
+                clearStdin();
+                printf("Re ingrese opcion.\n"); 
+            }
+            if(opcion < 1 || opcion > 3){
+                printf("Re ingrese opcion.\n");
+            }else{
+                enter = 0;
+            }
+        }
 
         switch(opcion){
             case 1: // cargo a la struct primer parcial
@@ -302,12 +354,24 @@ void cargar_nota(){
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void consultar_promedio_general(){
+    int enter=1;
+    char term;
 
     cls();
     printf("Ingresaste a promedio general.\n\n");
 
     printf("Ingrese documento del alumno.\n");
-    scanf("%d",&(mensaje->dni));
+    while(enter == 1){
+        while(scanf("%d%c", &(mensaje->dni), &term) != 2 || term != '\n'){
+            clearStdin();
+            printf("Re ingrese documento del alumno.\n"); 
+        }
+        if(mensaje->dni < 1 || mensaje->dni > 99999999){
+            printf("Re ingrese documento del alumno.\n");
+        }else{
+            enter = 0;
+        }
+    }
     mensaje->comando=GENERAL;
 
     sem_post(mutexServer);
@@ -315,12 +379,24 @@ void consultar_promedio_general(){
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void consultar_promedio_por_materia(){
-
+    int enter=1;
+    char term;
+    
     cls();
     printf("Ingresaste a promedio por materia.\n\n");
     
     printf("Ingrese documento del alumno.\n");
-    scanf("%d",&(mensaje->dni));
+    while(enter == 1){
+        while(scanf("%d%c", &(mensaje->dni), &term) != 2 || term != '\n'){
+            clearStdin();
+            printf("Re ingrese documento del alumno.\n"); 
+        }
+        if(mensaje->dni < 1 || mensaje->dni > 99999999){
+            printf("Re ingrese documento del alumno.\n");
+        }else{
+            enter = 0;
+        }
+    }
     mensaje->comando=MATERIA;
 
     sem_post(mutexServer);
