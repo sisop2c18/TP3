@@ -71,7 +71,7 @@ int main(int argc, char *argv[]){
 	      pidd1, pidd2, pidd3;
 
 	if(argc == 2 && ((strcmp(argv[1],"-help")==0) || (strcmp(argv[1],"-h") == 0) || (strcmp(argv[1],"-?") == 0))){
-	    printf("La sintaxis es ./Client [Materia]\nFormato: ./Client [string]\nEjemplo: ./Client Algebra\nPara ver los zombies: ps aux | awk '{ print $8 " " $2 }' | grep -w Z\nPara ver los demonios: ps aux | awk '{ print $8 " " $2 }' | grep -w Ss\n");
+	    printf("La sintaxis es ./Ejercicio1\nPara ver los zombies: ps aux | awk '{ print $8 " " $2 }' | grep -w Z\nPara ver los demonios: ps aux | awk '{ print $8 " " $2 }' | grep -w Ss\n");
 	    exit(1);
 	}else if(argc >= 2){
 	    printf("Error, cantidad de parametros inadecuados, para ayuda: ./Ejercicio1 -h\n");
