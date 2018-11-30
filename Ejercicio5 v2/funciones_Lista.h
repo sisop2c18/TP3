@@ -9,6 +9,7 @@
 
 typedef struct{
     int id;
+    pid_t pid;
     pthread_t threadId;
     pthread_t threadWrite;
 }t_dato;

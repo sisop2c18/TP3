@@ -16,7 +16,7 @@
 #         Schafer, Federico        39336856       #
 #         Secchi, Lucas            39267345       #
 #                                                 #
-#       Instancia de Entrega: Entrega             #
+#       Instancia de Entrega: Re Entrega 1        #
 #                                                 #
 ###################################################*/
 
@@ -26,10 +26,13 @@ int fd;
 pthread_t threadWrite;
 
 void sigInt(int dummy){
-    // cancelar todos los threads
-    printf("\nCerrando todo...\n");
+
+    cls();
+    printf("Cerrando todo...\n");
     locked = 0;
-    leave = 0;
+    //leave = 0;
+    killThemAll();
+    printf("Se ha desconectado a todos los clientes.\n");
     sem_post(mutexConexion); //desbloqueo el sem_wait del while de conexiones
     t_lista first = clientes;
     while(first){
@@ -37,21 +40,35 @@ void sigInt(int dummy){
         //pthread_join(first->dato.threadWrite, NULL);   
         first = first->sig;
     }
-    pthread_cancel(threadWrite);  
+    sleep(2);
+    printf("Se cancelaron los threads de lectura.\n");
+    sleep(2);
+    pthread_cancel(threadWrite);
+    printf("Se cancelaron los threads de escritura.\n");
+    sleep(2);
     vaciarLista(&clientes);
     deleteDB(&bd);
+
     pthread_mutex_destroy(&mutex);
     pthread_mutex_destroy(&write_mutex);
     pthread_mutex_destroy(&quit_mutex);
+
+    sem_close(mutexConexion);
+    sem_close(mutexEspera);            
+    sem_close(mutexClient);             
     sem_close(mutexServer);
-    sem_unlink(SMUTEX);
-    sem_close(mutexClient);
-    sem_unlink(CMUTEX);
-    sem_close(mutexEspera);
-    sem_unlink(WMUTEX);
-    close(fd);
+
+    sem_unlink(EMUTEX);
+    sem_unlink(WMUTEX);                 
+    sem_unlink(CMUTEX); 
+    sem_unlink(SMUTEX);     
+
+    close(fd);                          
     munmap(mensaje, sizeof(t_comando));
     shm_unlink(SHMFILE);
+    
+    printf("Servidor cerrado correctamente.\n");
+    exit(1);
 }
 
 int main(int argc , char *argv[]){
@@ -99,6 +116,7 @@ int main(int argc , char *argv[]){
         if(locked){    
             printf("[+] Se ha conectado un cliente.\n");
 
+            d.pid=mensaje->dni;
             d.id=id++;
             addUsuario(&copiaClientes,&d,cmp);
 
@@ -111,9 +129,6 @@ int main(int argc , char *argv[]){
             addUsuario(&clientes,&d,cmp);
         }
     }
-
-    sem_close(mutexConexion);
-    sem_unlink(EMUTEX);
 
     return 0;
 }

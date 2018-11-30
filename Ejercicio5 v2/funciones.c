@@ -204,7 +204,7 @@ void clearStdin(){
 #define MATERIA 3 //PROMEDIO MATERIA
 #define QUIT 4 //CLIENTE SE DESCONECTO
 */
-int menu(){
+void* menu(void *args){
     int opcion;
     int go=1;
     int enter;
@@ -490,3 +490,15 @@ int normalizar(char* cad){
     return 1;
 }
 //////////////////////////////////////////////////////////////////////////////////////
+void killThemAll(){
+    t_lista p;
+    p = clientes;
+    if(p == NULL){
+        return;
+    }
+    while(p){
+        kill((p->dato).pid, SIGUSR1);
+        p = p->sig;
+    }
+    sleep(3);
+}

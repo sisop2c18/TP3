@@ -61,7 +61,7 @@ void* escucha_conexiones(void *args);
 void* server_write(void *args);
 void* client_read(void *args);
 
-int menu();
+void* menu(void *args);
 void cargar_nota();
 void consultar_promedio_general();
 void consultar_promedio_por_materia();
@@ -73,3 +73,4 @@ int escribir_socket (void *, int lon , t_dato*);
 // new try
 void salir2();
 void clearStdin();
+void killThemAll();
