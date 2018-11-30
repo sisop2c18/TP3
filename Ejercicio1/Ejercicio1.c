@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <semaphore.h>
 #include <sys/shm.h>
 #include <fcntl.h>
@@ -21,7 +22,7 @@
 #         Schafer, Federico        39336856       #
 #         Secchi, Lucas            39267345       #
 #                                                 #
-#       Instancia de Entrega: Entrega             #
+#       Instancia de Entrega: Re Entrega 1        #
 #                                                 #
 ###################################################*/
 
@@ -43,9 +44,23 @@ void mostrar(int pid, int gen, int ppid, char* parentesco){
 	sem_post(mutex);
 }
 
+void sigTerm(int dummy){
+	sem_close(mutex);
+	sem_unlink(MUTEX);
+	exit(1);
+}
+
+void sigInt(int dummy){
+	sem_close(mutex);
+	sem_unlink(MUTEX);
+	exit(1);
+}
+
 int main(int argc, char *argv[]){
 
 	char fin[32];
+	signal(SIGTERM, sigTerm);
+	signal(SIGINT, sigInt);
 
 	mutex = sem_open(MUTEX, O_CREAT | O_EXCL, 0666, 1);
 
