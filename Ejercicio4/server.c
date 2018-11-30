@@ -18,7 +18,7 @@
 #         Schafer, Federico        39336856       #
 #         Secchi, Lucas            39267345       #
 #                                                 #
-#       Instancia de Entrega: Entrega             #
+#       Instancia de Entrega: Re Entrega 1        #
 #                                                 #
 ###################################################*/
 
