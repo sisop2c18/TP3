@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
+#include <sys/types.h>
 ///////////////////////////////////////
 #define BD "bd.txt"
 
